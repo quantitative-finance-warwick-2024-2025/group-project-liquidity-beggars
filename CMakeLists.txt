@@ -11,7 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 add_compile_options(-Wall -Wextra)
 
 # Add more source files here if needed
-set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/my_new_class1.cpp ${CMAKE_SOURCE_DIR}/src/my_new_class2.cpp)
+set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/exchange.cpp ${CMAKE_SOURCE_DIR}/src/order_book.cpp ${CMAKE_SOURCE_DIR}/src/order.cpp ${CMAKE_SOURCE_DIR}/src/trader.cpp)
 
 add_executable(my_program ${SRC_FILES} ${CMAKE_SOURCE_DIR}/src/main.cpp)
 
