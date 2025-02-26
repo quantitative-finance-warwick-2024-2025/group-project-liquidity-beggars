@@ -12,9 +12,9 @@ Trader::Trader(std::string id, Exchange* exchange):
 }
 
 // Create limit order
-std::shared_ptr<LimitOrder> Trader::createLimitOrder(double quantity, double price, bool isBuy){
+std::shared_ptr<LimitOrder> Trader::createLimitOrder(double price, double quantity, bool isBuy){
     // TODO
-    return std::make_shared<LimitOrder>(id, quantity, price, isBuy); 
+    return std::make_shared<LimitOrder>(id, price, quantity, isBuy); 
 }
 
 // Create market order

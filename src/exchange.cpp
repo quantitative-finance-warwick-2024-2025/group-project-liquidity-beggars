@@ -21,8 +21,7 @@ std::vector<Trade> Exchange::matchOrder(std::shared_ptr<Order> order) {
 
 // Register trader
 Trader& Exchange::registerTrader(const std::string& traderId) {
-    traders[traderId] = Trader(traderId, this);
-    return traders[traderId];
+    return traders.try_emplace(traderId, traderId, this).first->second;
 }
 
 // Submit order
