@@ -8,7 +8,7 @@ namespace trading {
 // Constructor
 Trader::Trader(std::string id, Exchange* exchange):
     id(std::move(id)), exchange(exchange) {
-    // TODO
+        // TODO
 }
 
 // Create limit order
