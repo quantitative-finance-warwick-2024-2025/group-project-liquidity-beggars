@@ -20,7 +20,7 @@ public:
     Trader(std::string id, Exchange* exchange);
     
     // Create limit order
-    std::shared_ptr<LimitOrder> createLimitOrder(double quantity, double price, bool isBuy);
+    std::shared_ptr<LimitOrder> createLimitOrder(double price, double quantity, bool isBuy);
 
     // Create market order
     std::shared_ptr<MarketOrder> createMarketOrder(double quantity, bool isBuy);

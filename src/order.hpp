@@ -52,7 +52,7 @@ private:
     double price;
 
 public:
-    LimitOrder(std::string traderId, double quantity, double price, bool isBuy);
+    LimitOrder(std::string traderId, double price, double quantity, bool isBuy);
     
     // Abstract methods
 
