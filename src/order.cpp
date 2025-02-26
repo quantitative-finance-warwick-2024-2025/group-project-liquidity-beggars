@@ -6,6 +6,9 @@ namespace trading {
 
 // Order parent class implementation
 
+// Forward definition
+std::string generateOrderId();
+
 // Order constructor
 Order::Order(std::string traderId, double quantity, bool isBuy): 
     id(generateOrderId()), traderId(std::move(traderId)), quantity(quantity), isBuy(isBuy) {

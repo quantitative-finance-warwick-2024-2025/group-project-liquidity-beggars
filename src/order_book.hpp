@@ -4,6 +4,7 @@
 #include <map>
 #include <list>
 #include <memory>
+#include <unordered_map>
 
 namespace trading {
 
@@ -26,6 +27,8 @@ private:
     // Binary trees for price levels
     std::map<double, PriceLevel, std::greater<>> bids;  // Highest bid
     std::map<double, PriceLevel> asks;                  // Lowest ask
+    std::unordered_map<std::string, std::pair<bool, double>> orderMap;  // orderId -> (isBuy, price)
+
     
 public:
     // Add order

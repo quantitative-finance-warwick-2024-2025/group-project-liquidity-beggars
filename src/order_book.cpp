@@ -55,17 +55,17 @@ void OrderBook::addOrder(std::shared_ptr<Order> order) {
     if (isBuy) {
         auto it = bids.find(price);
         if (it == bids.end()) {
-            bids[price] = PriceLevel(price);
+            bids.emplace(price, PriceLevel(price)); 
         }
-        bids[price].addOrder(order);
+        bids.at(price).addOrder(order); 
     }
     else {
         auto it = asks.find(price);
         if (it == asks.end()) {
-            asks[price] = PriceLevel(price);
+            asks.emplace(price, PriceLevel(price));
         }
-        asks[price].addOrder(order);
-        }
+        asks.at(price).addOrder(order);
+    }
 
     // store order in hash map for look up by ID
     orderMap[order->getId()] = std::make_pair(isBuy, price);
@@ -90,13 +90,15 @@ bool OrderBook::removeOrder(const std::string& orderId) {
         if (level != tree.end()) {
             bool removed = level->second.removeOrder(orderId);
             
-            if (level->second.orders.empty()) {
-                tree.erase(level);
+            if (removed) {
+                if (level->second.orders.empty()) {
+                    tree.erase(level);
+                }
+                
+                orderMap.erase(it);
+                return true;
             }
-            
-            orderMap.erase(it);
-            return true;
-    }
+        }
     } else {
         auto& tree = asks;
         auto level = tree.find(price);
@@ -104,12 +106,14 @@ bool OrderBook::removeOrder(const std::string& orderId) {
         if (level != tree.end()) {
             bool removed = level->second.removeOrder(orderId);
             
-            if (level->second.orders.empty()) {
-                tree.erase(level);
+            if (removed) {
+                if (level->second.orders.empty()) {
+                    tree.erase(level);
+                }
+            
+                orderMap.erase(it);
+                return true;
             }
-        
-        orderMap.erase(it);
-        return true;
         }
     return false;
     }
@@ -163,12 +167,12 @@ std::shared_ptr<Order> OrderBook::getHighestBid() const {
 // Get lowest ask
 std::shared_ptr<Order> OrderBook::getLowestAsk() const {
     
-    if (bids.empty()) {
+    if (asks.empty()) {
         return nullptr; // TODO EXCEPTION
     }
 
     // get first price level (lowest)
-    const auto& level = bids.begin() -> second;
+    const auto& level = asks.begin() -> second;
 
     // get first order (time priority - default operator)
     return level.orders.empty() ? nullptr : level.orders.front(); // TODO EXCEPTION
