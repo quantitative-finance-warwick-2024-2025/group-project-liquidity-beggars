@@ -12,7 +12,9 @@ std::string generateOrderId();
 // Order constructor
 Order::Order(std::string traderId, double quantity, bool isBuy): 
     id(generateOrderId()), traderId(std::move(traderId)), quantity(quantity), isBuy(isBuy) {
-        //TODO
+        if (quantity <= 0) {
+            throw std::invalid_argument("Order quantity must be greater than zero.");
+        }
 }
 // Generate order ID
 std::string generateOrderId() {
@@ -38,10 +40,16 @@ bool Order::isBuyOrder() const {
 
 // LimitOrder implementation
 
-// LimiOrder constructor
+// LimitOrder constructor
 LimitOrder::LimitOrder(std::string traderId, double price, double quantity, bool isBuy): 
     Order(std::move(traderId), quantity, isBuy), price(price) {
-        //TODO
+        if (quantity <= 0) {
+            throw std::invalid_argument("Order quantity must be greater than zero.");
+        }
+        
+        if (price <= 0) {
+            throw std::invalid_argument("Limit price must be greater than zero.");
+        }
 }
 
 // Get order type
@@ -55,9 +63,9 @@ double LimitOrder::getPrice() const {
 }
 
 // For display
-std::string LimitOrder::toString() const{
+std::string LimitOrder::toString() const {
     std::stringstream ss;
-    ss << (isBuy ? "BUY" : "SELL") << " " << quantity << " @ MARKET";
+    ss << (isBuy ? "BUY" : "SELL") << " " << quantity << " @ " << price;
     return ss.str();
 }
 
@@ -76,7 +84,9 @@ void Order::setQuantity(double newQuantity) {
 // MarketOrder constructor
 MarketOrder::MarketOrder(std::string traderId, double quantity, bool isBuy): 
     Order(std::move(traderId), quantity, isBuy) {
-        // TODO
+        if (quantity <= 0) {
+            throw std::invalid_argument("Order quantity must be greater than zero.");
+        }
 }
 
 // Get order type
