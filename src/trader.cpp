@@ -27,14 +27,12 @@ std::shared_ptr<MarketOrder> Trader::createMarketOrder(double quantity, bool isB
 
 // Cancel limit order
 bool Trader::cancelOrder(const std::string& orderId) {
-    exchange->cancelOrder(orderId);
-    return true;
+    return exchange->cancelOrder(orderId);
 }
 
 // Modify limit order
 bool Trader::modifyOrder(const std::string& orderId, double newQuantity, double newPrice) {
-    exchange->modifyOrder(orderId, newQuantity, newPrice);
-    return true;
+    return exchange->modifyOrder(orderId, newQuantity, newPrice);
 }
 
 // Get id 

@@ -39,7 +39,7 @@ bool Order::isBuyOrder() const {
 // LimitOrder implementation
 
 // LimiOrder constructor
-LimitOrder::LimitOrder(std::string traderId, double quantity, double price, bool isBuy): 
+LimitOrder::LimitOrder(std::string traderId, double price, double quantity, bool isBuy): 
     Order(std::move(traderId), quantity, isBuy), price(price) {
         //TODO
 }
