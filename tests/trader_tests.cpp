@@ -22,7 +22,7 @@ TEST_CASE("Trader", "[trader]") {
         std::string traderid = "trader1";
         Trader trader1(traderid, exchange);
 
-        std::shared_ptr<LimitOrder> order1 = trader1.createLimitOrder(99.0, 50, true);
+        auto order1 = trader1.createLimitOrder(99.0, 50, true);
         const OrderBook& orderBook = exchange->getOrderBook();
         std::shared_ptr<Order> foundOrder = orderBook.findOrder(order1->getId());
 

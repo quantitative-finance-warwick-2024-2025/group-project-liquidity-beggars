@@ -28,7 +28,7 @@ bool PriceLevel::removeOrder(const std::string& orderId) {
 }
 
 // Find order
-std::shared_ptr<Order> PriceLevel::findOrder(const std::string& orderId) {
+std::shared_ptr<Order> PriceLevel::findOrder(const std::string& orderId) const {
     for (const auto& order : orders) {
         if (order->getId() == orderId) {
             return order;
@@ -120,7 +120,7 @@ bool OrderBook::removeOrder(const std::string& orderId) {
 }
 
 // Find order
-std::shared_ptr<Order> OrderBook::findOrder(const std::string& orderId) {
+std::shared_ptr<Order> OrderBook::findOrder(const std::string& orderId) const {
 
     auto it = orderMap.find(orderId);
     if (it == orderMap.end()) {
