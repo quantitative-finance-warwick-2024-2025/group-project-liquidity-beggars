@@ -41,7 +41,7 @@ public:
     bool cancelOrder(const std::string& orderId);
     
     // Modify order
-    bool modifyOrder(const std::string& orderId, double newQuantity, double newPrice);
+    bool modifyOrder(const std::string& orderId, double newPrice, double newQuantity);
     
     // Get order book
     const OrderBook& getOrderBook() const;

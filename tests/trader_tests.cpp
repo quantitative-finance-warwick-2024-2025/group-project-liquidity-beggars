@@ -16,32 +16,32 @@ std::shared_ptr<MarketOrder> createMarketOrderTest(const std::string& traderId, 
     return std::make_shared<MarketOrder>(traderId, quantity, isBuy);
 }
 
-bool compare_orders(std::shared_ptr<Order> order1, std::shared_ptr<Order> order2){
-        if (order1->getTraderId() == order2->getTraderId() &&
-            order1->getPrice() == order2->getPrice() &&
-            order1->getQuantity() == order2->getQuantity() &&
-            order1->getType() == order2->getType() && 
-            order1->isBuyOrder() == order2->isBuyOrder()){
-                return true;
-            }
-        else{
-            return false;
-        }
+bool compare_orders(std::shared_ptr<Order> order1, std::shared_ptr<Order> order2) {
+    if (order1->getTraderId() == order2->getTraderId() &&
+        order1->getPrice() == order2->getPrice() &&
+        order1->getQuantity() == order2->getQuantity() &&
+        order1->getType() == order2->getType() && 
+        order1->isBuyOrder() == order2->isBuyOrder()){
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 TEST_CASE("Trader", "[trader]") {
 
     SECTION("Constructor") {
-        Exchange* exchange;
+        Exchange exchange;
         std::string traderid = "trader1";
-        Trader trader1(traderid, exchange);
+        Trader trader1(traderid, &exchange);
         REQUIRE (trader1.getId() == "trader1");
     }
     
     SECTION("Create Buy Limit Order") {
-        Exchange* exchange;
+        Exchange exchange;
         std::string traderid = "trader1";
-        Trader trader1(traderid, exchange);
+        Trader trader1(traderid, &exchange);
 
         auto order1 = trader1.createLimitOrder(99.0, 50, true);
         auto test_order1 = createLimitOrderTest("trader1", 99.0, 50, true);
@@ -62,9 +62,9 @@ TEST_CASE("Trader", "[trader]") {
     }
 
     SECTION("Create Sell Limit Order") {
-        Exchange* exchange;
+        Exchange exchange;
         std::string traderid = "trader1";
-        Trader trader1(traderid, exchange);
+        Trader trader1(traderid, &exchange);
 
         auto order1 = trader1.createLimitOrder(99.0, 50, false);
         auto test_order1 = createLimitOrderTest("trader1", 99.0, 50, false);
@@ -73,9 +73,9 @@ TEST_CASE("Trader", "[trader]") {
     }
 
     SECTION("Create Buy Market Order") {
-        Exchange* exchange;
+        Exchange exchange;
         std::string traderid = "trader1";
-        Trader trader1(traderid, exchange);
+        Trader trader1(traderid, &exchange);
 
         auto order1 = trader1.createMarketOrder(50, true);
         auto test_order1 = createMarketOrderTest("trader1", 50, true);
@@ -84,9 +84,9 @@ TEST_CASE("Trader", "[trader]") {
     }
 
     SECTION("Create Sell Market Order") {
-        Exchange* exchange;
+        Exchange exchange;
         std::string traderid = "trader1";
-        Trader trader1(traderid, exchange);
+        Trader trader1(traderid, &exchange);
 
         auto order1 = trader1.createMarketOrder(50, false);
         auto test_order1 = createMarketOrderTest("trader1", 50, false);

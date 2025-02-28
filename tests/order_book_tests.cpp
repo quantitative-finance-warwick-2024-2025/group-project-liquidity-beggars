@@ -7,7 +7,7 @@ using namespace trading;
 
 // Create limit order for testing
 std::shared_ptr<LimitOrder> createLimitOrderTest(const std::string& traderId, double price, double quantity, bool isBuy) {
-    return std::make_shared<LimitOrder>(traderId, quantity, price, isBuy);
+    return std::make_shared<LimitOrder>(traderId, price, quantity, isBuy);
 }
 
 TEST_CASE("PriceLevel Methods", "[PriceLevel]") {

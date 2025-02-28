@@ -34,7 +34,7 @@ std::vector<Trade> Exchange::matchOrder(std::shared_ptr<Order> incomingOrder)
         while (incomingOrder->getQuantity() > 0) {
             // 1. Check if there's a lowest ask
             auto bestAsk = orderBook.getLowestAsk();
-            if (!bestAsk) {
+            if (!bestAsk || bestAsk->getQuantity() <= 0) {
                 // No ask orders left, can't match further
                 break;
             }
@@ -43,8 +43,8 @@ std::vector<Trade> Exchange::matchOrder(std::shared_ptr<Order> incomingOrder)
             if (incomingOrder->getType() == OrderType::LIMIT) {
                 double incomingPrice = incomingOrder->getPrice();
                 double bestAskPrice  = bestAsk->getPrice();
-                if (bestAskPrice > incomingPrice) {
-                    // No crossing if best ask is too high
+                if (incomingPrice < bestAskPrice) {
+                    // No crossing if incoming buy price is less than best ask price
                     break;
                 }
             }
@@ -57,18 +57,25 @@ std::vector<Trade> Exchange::matchOrder(std::shared_ptr<Order> incomingOrder)
             Trade trade;
             trade.buyOrderId  = incomingOrder->getId();
             trade.sellOrderId = bestAsk->getId();
-            // Execution price is typically the resting order’s price
+            // Execution price is typically the resting order's price
             trade.price       = bestAsk->getPrice();
             trade.quantity    = matchedQty;
             executedTrades.push_back(trade);
 
             // 5. Update quantities
-            incomingOrder->setQuantity(incomingOrder->getQuantity() - matchedQty);
-            bestAsk->setQuantity(bestAsk->getQuantity() - matchedQty);
+            double newIncomingQty = incomingOrder->getQuantity() - matchedQty;
+            double newAskQty = bestAsk->getQuantity() - matchedQty;
+            
+            incomingOrder->setQuantity(newIncomingQty);
+            bestAsk->setQuantity(newAskQty);
 
             // 6. If the ask was fully filled, remove it
-            if (bestAsk->getQuantity() <= 0) {
-                orderBook.removeOrder(bestAsk->getId());
+            if (newAskQty <= 0) {
+                bool removed = orderBook.removeOrder(bestAsk->getId());
+                if (!removed) {
+                    // Failed to remove order - break to avoid infinite loop
+                    break;
+                }
             }
         }
     }
@@ -77,7 +84,7 @@ std::vector<Trade> Exchange::matchOrder(std::shared_ptr<Order> incomingOrder)
         while (incomingOrder->getQuantity() > 0) {
             // 1. Check if there's a highest bid
             auto bestBid = orderBook.getHighestBid();
-            if (!bestBid) {
+            if (!bestBid || bestBid->getQuantity() <= 0) {
                 // No bid orders left
                 break;
             }
@@ -87,7 +94,7 @@ std::vector<Trade> Exchange::matchOrder(std::shared_ptr<Order> incomingOrder)
                 double incomingPrice = incomingOrder->getPrice();
                 double bestBidPrice  = bestBid->getPrice();
                 if (bestBidPrice < incomingPrice) {
-                    // No crossing if best bid is too low
+                    // No crossing if best bid price is less than incoming sell price
                     break;
                 }
             }
@@ -104,12 +111,19 @@ std::vector<Trade> Exchange::matchOrder(std::shared_ptr<Order> incomingOrder)
             executedTrades.push_back(trade);
 
             // 5. Update quantities
-            incomingOrder->setQuantity(incomingOrder->getQuantity() - matchedQty);
-            bestBid->setQuantity(bestBid->getQuantity() - matchedQty);
+            double newIncomingQty = incomingOrder->getQuantity() - matchedQty;
+            double newBidQty = bestBid->getQuantity() - matchedQty;
+            
+            incomingOrder->setQuantity(newIncomingQty);
+            bestBid->setQuantity(newBidQty);
 
             // 6. If the bid was fully filled, remove it
-            if (bestBid->getQuantity() <= 0) {
-                orderBook.removeOrder(bestBid->getId());
+            if (newBidQty <= 0) {
+                bool removed = orderBook.removeOrder(bestBid->getId());
+                if (!removed) {
+                    // Failed to remove order - break to avoid infinite loop
+                    break;
+                }
             }
         }
     }
@@ -157,7 +171,7 @@ bool Exchange::cancelOrder(const std::string& orderId)
 // ------------------------------------------
 // Removes the target limit order, checks new values, updates, and *resubmits* it
 // so that if it crosses the market, it can match immediately.
-bool Exchange::modifyOrder(const std::string& orderId, double newQuantity, double newPrice)
+bool Exchange::modifyOrder(const std::string& orderId, double newPrice, double newQuantity)
 {
     // 1. Locate the existing order
     auto existingOrder = orderBook.findOrder(orderId);

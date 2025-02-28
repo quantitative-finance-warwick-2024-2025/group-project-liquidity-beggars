@@ -16,7 +16,7 @@ std::shared_ptr<LimitOrder> createTestLimitOrder(const std::string& traderId,
                                                  double quantity,
                                                  bool isBuy)
 {
-    return std::make_shared<LimitOrder>(traderId, quantity, price, isBuy);
+    return std::make_shared<LimitOrder>(traderId, price, quantity, isBuy);
 }
 
 // -----------------------------------------------------------------------------
@@ -63,7 +63,7 @@ TEST_CASE("Exchange - Submit Orders & Match Logic", "[Exchange]")
     Trader& trader2 = exchange.registerTrader("trader2");
 
     SECTION("Submitting a single limit order - no match") {
-        auto buyOrder = trader1.createLimitOrder(10.0, 100.0, true); 
+        auto buyOrder = trader1.createLimitOrder(100.0, 10.0, true); 
         std::vector<Trade> trades = exchange.submitOrder(buyOrder);
 
         REQUIRE(trades.empty()); // No opposing orders to match with
@@ -78,12 +78,12 @@ TEST_CASE("Exchange - Submit Orders & Match Logic", "[Exchange]")
 
     SECTION("Limit order match - full fill") {
         // Submit a sell limit order
-        auto sellOrder = trader2.createLimitOrder(10.0, 105.0, false);
+        auto sellOrder = trader2.createLimitOrder(105.0, 10.0, false);
         exchange.submitOrder(sellOrder);
 
         // Submit a buy limit order with quantity 10, crossing the ask
         // Price crosses if buy price >= sell price
-        auto buyOrder = trader1.createLimitOrder(10.0, 105.0, true);
+        auto buyOrder = trader1.createLimitOrder(105.0, 10.0, true);
         std::vector<Trade> trades = exchange.submitOrder(buyOrder);
 
         // Should fully match, so 1 trade
@@ -100,11 +100,11 @@ TEST_CASE("Exchange - Submit Orders & Match Logic", "[Exchange]")
 
     SECTION("Partial fill scenario") {
         // Trader2 places a sell order (quantity 20)
-        auto sellOrder = trader2.createLimitOrder(20.0, 101.0, false);
+        auto sellOrder = trader2.createLimitOrder(101.0, 20.0, false);
         exchange.submitOrder(sellOrder);
 
         // Trader1 places a buy order with quantity 10, same price 101
-        auto buyOrder = trader1.createLimitOrder(10.0, 101.0, true);
+        auto buyOrder = trader1.createLimitOrder(101.0, 10.0, true);
         auto resultTrades = exchange.submitOrder(buyOrder);
 
         // Should produce a single trade (10 units)
@@ -126,8 +126,8 @@ TEST_CASE("Exchange - Submit Orders & Match Logic", "[Exchange]")
 
     SECTION("Market order scenario") {
         // Place a sell limit order in the book
-        auto sellOrder1 = trader2.createLimitOrder(15.0, 100.0, false);
-        auto sellOrder2 = trader2.createLimitOrder(10.0, 99.0,  false);
+        auto sellOrder1 = trader2.createLimitOrder(100.0, 15.0, false);
+        auto sellOrder2 = trader2.createLimitOrder(99.0, 10.0,  false);
         exchange.submitOrder(sellOrder1);
         exchange.submitOrder(sellOrder2);
 
@@ -167,7 +167,7 @@ TEST_CASE("Exchange - Cancel & Modify Orders", "[Exchange]")
     Trader& trader2 = exchange.registerTrader("T2");
 
     SECTION("Cancel a limit order") {
-        auto buyOrder = trader1.createLimitOrder(10.0, 100.0, true);
+        auto buyOrder = trader1.createLimitOrder(100.0, 10.0, true);
         exchange.submitOrder(buyOrder);
         REQUIRE_FALSE(exchange.getOrderBook().isEmpty());
 
@@ -182,18 +182,18 @@ TEST_CASE("Exchange - Cancel & Modify Orders", "[Exchange]")
 
     SECTION("Modify limit order - immediate re‐match if crossing") {
         // Place a sell order at price 105
-        auto sellOrder = trader2.createLimitOrder(10.0, 105.0, false);
+        auto sellOrder = trader2.createLimitOrder(105.0, 10.0, false);
         exchange.submitOrder(sellOrder);
 
         // Place a buy order at price 100 (no match yet)
-        auto buyOrder = trader1.createLimitOrder(10.0, 100.0, true);
+        auto buyOrder = trader1.createLimitOrder(100.0, 10.0, true);
         exchange.submitOrder(buyOrder);
 
         // Currently, no trades have occurred
         REQUIRE(exchange.getTrades().empty());
 
         // Now modify the buy order to price 105 -> should match immediately
-        bool modified = exchange.modifyOrder(buyOrder->getId(), /*newQty*/10, /*newPrice*/105);
+        bool modified = exchange.modifyOrder(buyOrder->getId(), 105.0, 10.0);
         REQUIRE(modified);
 
         // The re-match should have happened, thus producing 1 trade
@@ -209,7 +209,7 @@ TEST_CASE("Exchange - Cancel & Modify Orders", "[Exchange]")
     }
 
     SECTION("Modify order with invalid new quantity/price") {
-        auto buyOrder = trader1.createLimitOrder(10.0, 101.0, true);
+        auto buyOrder = trader1.createLimitOrder(101.0, 10.0, true);
         exchange.submitOrder(buyOrder);
 
         // Attempt to set newQuantity = 0, newPrice = 0
@@ -224,7 +224,7 @@ TEST_CASE("Exchange - Cancel & Modify Orders", "[Exchange]")
 
     SECTION("Modify non-existent order") {
         // Attempt to modify an order that doesn’t exist
-        bool mod = exchange.modifyOrder("no_such_id", 10.0, 110.0);
+        bool mod = exchange.modifyOrder("no_such_id", 110.0, 10.0);
         REQUIRE_FALSE(mod);
     }
 
@@ -234,7 +234,7 @@ TEST_CASE("Exchange - Cancel & Modify Orders", "[Exchange]")
 
         // If it’s still leftover (unusual for a market order, but possible if no opposite side),
         // we attempt to modify it. The exchange logic should reject.
-        bool modMarket = exchange.modifyOrder(marketBuy->getId(), 5.0, 120.0);
+        bool modMarket = exchange.modifyOrder(marketBuy->getId(), 120.0, 5.0);
         REQUIRE_FALSE(modMarket);
     }
 }
@@ -247,11 +247,11 @@ TEST_CASE("Exchange - Trade Records", "[Exchange]")
 
     SECTION("Trade records appended to exchange's trades vector") {
         // Bob places a sell order
-        auto sellOrder = tB.createLimitOrder(10.0, 50.0, false);
+        auto sellOrder = tB.createLimitOrder(50.0, 10.0, false);
         exchange.submitOrder(sellOrder);
         
         // Alice places a buy order crossing Bob's sell
-        auto buyOrder = tA.createLimitOrder(10.0, 55.0, true);
+        auto buyOrder = tA.createLimitOrder(55.0, 10.0, true);
         auto theseTrades = exchange.submitOrder(buyOrder);
 
         // Should produce exactly 1 trade
@@ -275,15 +275,15 @@ TEST_CASE("Exchange - Trade Records", "[Exchange]")
 
     SECTION("Multiple trades accumulate") {
         // 1) Sell order 1
-        auto sellOrder1 = tB.createLimitOrder(10.0, 50.0, false);
+        auto sellOrder1 = tB.createLimitOrder(50.0, 10.0, false);
         exchange.submitOrder(sellOrder1);
 
         // 2) Sell order 2
-        auto sellOrder2 = tB.createLimitOrder(5.0, 51.0, false);
+        auto sellOrder2 = tB.createLimitOrder(51.0, 5.0, false);
         exchange.submitOrder(sellOrder2);
 
         // 3) Buy order crosses both
-        auto buyOrder = tA.createLimitOrder(20.0, 55.0, true);
+        auto buyOrder = tA.createLimitOrder(55.0, 20.0, true);
         auto tradeVec = exchange.submitOrder(buyOrder);
 
         // We expect two trades: 10 shares at 50, then 5 shares at 51

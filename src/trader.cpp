@@ -14,14 +14,12 @@ Trader::Trader(std::string id, Exchange* exchange):
 // Create limit order
 std::shared_ptr<LimitOrder> Trader::createLimitOrder(double price, double quantity, bool isBuy){
     auto order = std::make_shared<LimitOrder>(id, price, quantity, isBuy);
-    exchange->submitOrder(order);
     return order;
 }
 
 // Create market order
 std::shared_ptr<MarketOrder> Trader::createMarketOrder(double quantity, bool isBuy) {
     auto order = std::make_shared<MarketOrder>(id, quantity, isBuy);
-    exchange->submitOrder(order);
     return order;
 }
 

@@ -115,8 +115,8 @@ bool OrderBook::removeOrder(const std::string& orderId) {
                 return true;
             }
         }
-    return false;
     }
+    return false;
 }
 
 // Find order
