@@ -30,6 +30,7 @@ private:
     std::vector<Trade> matchOrder(std::shared_ptr<Order> order);
     
 public:
+    
     // Register trader
     Trader& registerTrader(const std::string& traderId);
     

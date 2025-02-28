@@ -118,6 +118,13 @@ std::vector<Trade> Exchange::matchOrder(std::shared_ptr<Order> incomingOrder)
 }
 
 // ------------------------------------------
+// registerTrader
+// ------------------------------------------
+Trader& Exchange::registerTrader(const std::string& traderId) {
+    return traders.try_emplace(traderId, traderId, this).first->second;
+}
+
+// ------------------------------------------
 // submitOrder
 // ------------------------------------------
 std::vector<Trade> Exchange::submitOrder(std::shared_ptr<Order> order)
