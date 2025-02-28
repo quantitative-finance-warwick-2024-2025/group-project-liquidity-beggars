@@ -18,7 +18,7 @@ struct PriceLevel {
     
     void addOrder(std::shared_ptr<Order> order);
     bool removeOrder(const std::string& orderId);
-    std::shared_ptr<Order> findOrder(const std::string& orderId);
+    std::shared_ptr<Order> findOrder(const std::string& orderId) const;
 };
 
 // OrderBook class
@@ -38,7 +38,7 @@ public:
     bool removeOrder(const std::string& orderId);
     
     // Find order
-    std::shared_ptr<Order> findOrder(const std::string& orderId);
+    std::shared_ptr<Order> findOrder(const std::string& orderId) const;
     
     // Get highest bid
     std::shared_ptr<Order> getHighestBid() const;
