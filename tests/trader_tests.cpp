@@ -16,7 +16,6 @@ std::shared_ptr<MarketOrder> createMarketOrderTest(const std::string& traderId, 
     return std::make_shared<MarketOrder>(traderId, quantity, isBuy);
 }
 
-
 bool compare_orders(std::shared_ptr<Order> order1, std::shared_ptr<Order> order2){
         if (order1->getTraderId() == order2->getTraderId() &&
             order1->getPrice() == order2->getPrice() &&
