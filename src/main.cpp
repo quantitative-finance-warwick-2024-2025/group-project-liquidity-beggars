@@ -18,15 +18,19 @@ int main() {
         // Create and submit limit orders
         std::cout << "Submitting orders...\n";
         
-        auto buyOrder1 = trader1.createLimitOrder(10, 100.0, true);  // Buy 10 @ $100
-        auto buyOrder2 = trader1.createLimitOrder(20, 99.0, true);   // Buy 20 @ $99
-        auto sellOrder1 = trader2.createLimitOrder(15, 101.0, false); // Sell 15 @ $101
-        auto sellOrder2 = trader2.createLimitOrder(10, 102.0, false); // Sell 10 @ $102
+        auto buyOrder1 = trader1.createLimitOrder(99.0, 10, true);  // Buy 10 @ $100
+        // auto buyOrder2 = trader1.createLimitOrder(99.0, 20, true);   // Buy 20 @ $99
+        auto sellOrder1 = trader2.createLimitOrder(101.0, 15, false); // Sell 15 @ $101
+        // auto sellOrder2 = trader2.createLimitOrder(102.0, 10, false); // Sell 10 @ $102
+
+        std::cout << "\nNew orders created:\n";
+        std::cout << buyOrder1.get()->toString() << "\n";
+         std::cout << sellOrder1.get()->toString() << "\n";
         
+        // exchange.submitOrder(buyOrder1);
+        // exchange.submitOrder(buyOrder2);
         exchange.submitOrder(buyOrder1);
-        exchange.submitOrder(buyOrder2);
         exchange.submitOrder(sellOrder1);
-        exchange.submitOrder(sellOrder2);
         
         // Show order book
         std::cout << "\nOrder Book:\n";
@@ -34,7 +38,7 @@ int main() {
         
         // Modify an order
         std::cout << "Modifying orders...\n";
-        trader1.modifyOrder(buyOrder1->getId(), 15, 101.0);  // Modify to buy 15 @ $101
+        trader1.modifyOrder(sellOrder1->getId(), 99.0, 15);  // Modify to buy 15 @ $101
         
         // Show updated order book
         std::cout << "\nOrder Book after modification:\n";
@@ -42,7 +46,7 @@ int main() {
         
         // Create and submit market orders
         std::cout << "Submitting market order...\n";
-        auto marketOrder = trader2.createMarketOrder(5, true);  // Buy 5
+        auto marketOrder = trader2.createMarketOrder(10, true);  // buy 25
         auto trades = exchange.submitOrder(marketOrder);
         
         // Show trades
