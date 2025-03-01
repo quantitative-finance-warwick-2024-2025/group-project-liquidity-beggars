@@ -11,17 +11,13 @@ std::string generateOrderId();
 
 // Order constructor
 Order::Order(std::string traderId, double quantity, bool isBuy): 
-    id(generateOrderId()), traderId(std::move(traderId)), quantity(quantity), isBuy(isBuy) {
+    traderId(std::move(traderId)), quantity(quantity), isBuy(isBuy) {
         if (quantity <= 0) {
             throw std::invalid_argument("Order quantity must be greater than zero.");
         }
-}
-// Generate order ID
-std::string generateOrderId() {
-    static std::random_device rd;
-    static std::mt19937 gen(rd());
-    static std::uniform_int_distribution<> dis(1000, 9999);
-    return std::to_string(dis(gen));
+        // Generate sequential order ID
+        static unsigned int nextOrderId = 1;
+        id = "ORD-" + std::to_string(nextOrderId++);
 }
 
 // Getters
@@ -65,7 +61,9 @@ double LimitOrder::getPrice() const {
 // For display
 std::string LimitOrder::toString() const {
     std::stringstream ss;
-    ss << (isBuy ? "BUY" : "SELL") << " " << quantity << " @ " << price;
+    ss << "Order " << id << " (" << (isBuy ? "BUY" : "SELL") << "): "
+       << "Trader " << traderId << " | "
+       << quantity << " units @ $" << price;
     return ss.str();
 }
 
@@ -102,7 +100,9 @@ double MarketOrder::getPrice() const {
 // For display
 std::string MarketOrder::toString() const{
     std::stringstream ss;
-    ss << (isBuy ? "BUY" : "SELL") << " " << quantity << " @ MARKET";
+    ss << "Order " << id << " (" << (isBuy ? "BUY" : "SELL") << "): "
+       << "Trader " << traderId << " | "
+       << quantity << " units @ MARKET";
     return ss.str();
 }
 }

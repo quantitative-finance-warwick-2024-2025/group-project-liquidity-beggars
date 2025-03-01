@@ -33,18 +33,16 @@ TEST_CASE("Trader", "[trader]") {
 
     SECTION("Constructor") {
         Exchange exchange;
-        std::string traderid = "trader1";
-        Trader trader1(traderid, &exchange);
-        REQUIRE (trader1.getId() == "trader1");
+        Trader trader1(&exchange);
+        REQUIRE (trader1.getId() == "TRD-1");
     }
     
     SECTION("Create Buy Limit Order") {
         Exchange exchange;
-        std::string traderid = "trader1";
-        Trader trader1(traderid, &exchange);
+        Trader trader1(&exchange);
 
         auto order1 = trader1.createLimitOrder(99.0, 50, true);
-        auto test_order1 = createLimitOrderTest("trader1", 99.0, 50, true);
+        auto test_order1 = createLimitOrderTest(trader1.getId(), 99.0, 50, true);
 
         CAPTURE(order1->getTraderId(),
                 order1->getPrice(),
@@ -63,33 +61,30 @@ TEST_CASE("Trader", "[trader]") {
 
     SECTION("Create Sell Limit Order") {
         Exchange exchange;
-        std::string traderid = "trader1";
-        Trader trader1(traderid, &exchange);
+        Trader trader1(&exchange);
 
         auto order1 = trader1.createLimitOrder(99.0, 50, false);
-        auto test_order1 = createLimitOrderTest("trader1", 99.0, 50, false);
+        auto test_order1 = createLimitOrderTest(trader1.getId(), 99.0, 50, false);
 
         REQUIRE (compare_orders(order1, test_order1) == true);
     }
 
     SECTION("Create Buy Market Order") {
         Exchange exchange;
-        std::string traderid = "trader1";
-        Trader trader1(traderid, &exchange);
+        Trader trader1(&exchange);
 
         auto order1 = trader1.createMarketOrder(50, true);
-        auto test_order1 = createMarketOrderTest("trader1", 50, true);
+        auto test_order1 = createMarketOrderTest(trader1.getId(), 50, true);
 
         REQUIRE (compare_orders(order1, test_order1) == true);
     }
 
     SECTION("Create Sell Market Order") {
         Exchange exchange;
-        std::string traderid = "trader1";
-        Trader trader1(traderid, &exchange);
+        Trader trader1(&exchange);
 
         auto order1 = trader1.createMarketOrder(50, false);
-        auto test_order1 = createMarketOrderTest("trader1", 50, false);
+        auto test_order1 = createMarketOrderTest(trader1.getId(), 50, false);
 
         REQUIRE (compare_orders(order1, test_order1) == true);
     }
