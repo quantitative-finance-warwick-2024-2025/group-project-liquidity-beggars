@@ -25,7 +25,7 @@ int main() {
 
         std::cout << "\nNew orders created:\n";
         std::cout << buyOrder1.get()->toString() << "\n";
-         std::cout << sellOrder1.get()->toString() << "\n";
+        std::cout << sellOrder1.get()->toString() << "\n";
         
         // exchange.submitOrder(buyOrder1);
         // exchange.submitOrder(buyOrder2);

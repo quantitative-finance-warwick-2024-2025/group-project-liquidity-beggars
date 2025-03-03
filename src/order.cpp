@@ -1,6 +1,7 @@
 #include "order.hpp"
 #include <random>
 #include <sstream>
+#include <iostream>
 
 namespace trading {
 
@@ -12,8 +13,13 @@ std::string generateOrderId();
 // Order constructor
 Order::Order(std::string traderId, double quantity, bool isBuy): 
     id(generateOrderId()), traderId(std::move(traderId)), quantity(quantity), isBuy(isBuy) {
-        if (quantity <= 0) {
-            throw std::invalid_argument("Order quantity must be greater than zero.");
+        try{
+            if (quantity <= 0) {
+                throw std::invalid_argument("Order quantity must be greater than zero.");
+            }
+        }
+        catch (std::invalid_argument& exception){
+            std::cerr << "Exception caught: " << exception.what() << "\n";
         }
 }
 // Generate order ID
@@ -43,12 +49,19 @@ bool Order::isBuyOrder() const {
 // LimitOrder constructor
 LimitOrder::LimitOrder(std::string traderId, double price, double quantity, bool isBuy): 
     Order(std::move(traderId), quantity, isBuy), price(price) {
-        if (quantity <= 0) {
-            throw std::invalid_argument("Order quantity must be greater than zero.");
+        try{
+            if (quantity <= 0) {
+                throw std::invalid_argument("Order quantity must be greater than zero.");
+            }
+            
+            if (price <= 0) {
+                throw std::invalid_argument("Limit price must be greater than zero.");
+            }
+            isValid = true;
         }
-        
-        if (price <= 0) {
-            throw std::invalid_argument("Limit price must be greater than zero.");
+        catch (std::invalid_argument& exception){
+            std::cerr << "Exception caught: " << exception.what() << "\n";
+            isValid = false;
         }
 }
 
@@ -71,12 +84,28 @@ std::string LimitOrder::toString() const {
 
 // Modify price
 void LimitOrder::setPrice(double newPrice) {
-    price = newPrice;
+    try{
+        if (newPrice <= 0){
+            throw std::invalid_argument("Order price must be greater than zero.");
+        }
+        price = newPrice;
+    }
+    catch (std::invalid_argument& exception){
+        std::cerr << "Exception caught: " << exception.what() << "\n";
+    }
 }
 
 // Modify quantity
 void Order::setQuantity(double newQuantity) {
-    quantity = newQuantity;
+    try{
+        if (newQuantity <= 0){
+            throw std::invalid_argument("Order quantity must be greater than zero.");
+        }
+        quantity = newQuantity;
+    }
+    catch (std::invalid_argument& exception){
+        std::cerr << "Exception caught: " << exception.what() << "\n";
+    }    
 }
 
 // MarketOrder implementation
@@ -84,8 +113,13 @@ void Order::setQuantity(double newQuantity) {
 // MarketOrder constructor
 MarketOrder::MarketOrder(std::string traderId, double quantity, bool isBuy): 
     Order(std::move(traderId), quantity, isBuy) {
-        if (quantity <= 0) {
-            throw std::invalid_argument("Order quantity must be greater than zero.");
+        try{
+            if (quantity <= 0) {
+                throw std::invalid_argument("Order quantity must be greater than zero.");
+            }
+        }
+        catch (std::invalid_argument& exception){
+            std::cerr << "Exception caught: " << exception.what() << "\n";
         }
 }
 
