@@ -30,8 +30,8 @@ bool Trader::cancelOrder(const std::string& orderId) {
 }
 
 // Modify limit order
-bool Trader::modifyOrder(const std::string& orderId, double newQuantity, double newPrice) {
-    return exchange->modifyOrder(orderId, newQuantity, newPrice);
+bool Trader::modifyOrder(const std::string& orderId, double newPrice, double newQuantity) {
+    return exchange->modifyOrder(orderId, newPrice, newQuantity);
 }
 
 // Get id 
