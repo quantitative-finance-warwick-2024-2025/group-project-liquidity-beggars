@@ -247,29 +247,19 @@ void Exchange::displayTraders() const {
 // ------------------------------------------
 std::vector<Trade> Exchange::submitOrder(std::shared_ptr<Order> order)
 {
-    try{
-        if (!order){
-            throw std::invalid_argument("Cannot add null order.");
-        }
-        // 1. Match the incoming order
-        std::vector<Trade> newTrades = matchOrder(order);
+    // 1. Match the incoming order
+    std::vector<Trade> newTrades = matchOrder(order);
 
-        // 2. If it’s a limit order and there is leftover quantity, add it to the book
-        if (order->getType() == OrderType::LIMIT && order->getQuantity() > 0) {
-            orderBook.addOrder(order);
-        }
-
-        // 3. Record the newly executed trades
-        trades.insert(trades.end(), newTrades.begin(), newTrades.end());
-
-        // 4. Return them to caller
-        return newTrades;
+    // 2. If it’s a limit order and there is leftover quantity, add it to the book
+    if (order->getType() == OrderType::LIMIT && order->getQuantity() > 0) {
+        orderBook.addOrder(order);
     }
-    catch(const std::invalid_argument& exception){
-        std::cerr << "Exception caught: " << exception.what() << "\n";
-        return {};
-    }
-    
+
+    // 3. Record the newly executed trades
+    trades.insert(trades.end(), newTrades.begin(), newTrades.end());
+
+    // 4. Return them to caller
+    return newTrades;
 }
 
 // ------------------------------------------
@@ -287,56 +277,41 @@ bool Exchange::cancelOrder(const std::string& orderId)
 // so that if it crosses the market, it can match immediately.
 bool Exchange::modifyOrder(const std::string& orderId, double newPrice, double newQuantity)
 {
-    try{
-        // 1. Locate the existing order
-        auto existingOrder = orderBook.findOrder(orderId);
-        if (!existingOrder) {
-            throw std::runtime_error("Order " + orderId + " not found.");
-        }
-
-        // 2. Only allow modifying limit orders
-        if (existingOrder->getType() != OrderType::LIMIT) {
-            throw std::runtime_error("Market orders cannot be modified.");
-        }
-
-        // 3. Basic validation
-        if (newQuantity <= 0) {
-            throw std::invalid_argument("Order quantity must be greater than zero.");
-        }
-
-        if (newPrice <= 0){
-            throw std::invalid_argument("Limit price must be greater than zero.");
-        }
-
-        // 4. Remove from the book
-        if (!orderBook.removeOrder(orderId)) {
-            return false;
-        }
-
-        // 5. Update the fields
-        existingOrder->setQuantity(newQuantity);
-        auto limitPtr = std::dynamic_pointer_cast<LimitOrder>(existingOrder);
-        if (limitPtr) {
-            limitPtr->setPrice(newPrice);
-        } else {
-            // Should not happen if we confirmed it is limit, but just in case:
-            return false;
-        }
-
-        // 6. Re-submit (which triggers immediate match if crossing)
-        submitOrder(existingOrder);
-        return true;
-
-
+    // 1. Locate the existing order
+    auto existingOrder = orderBook.findOrder(orderId);
+    if (!existingOrder) {
+        return false; // Not found
     }
-    catch (std::invalid_argument& exception){
-        std::cerr << "Exception caught: " << exception.what() << "\n";
+
+    // 2. Only allow modifying limit orders
+    if (existingOrder->getType() != OrderType::LIMIT) {
         return false;
     }
-    catch (std::runtime_error& exception){
-        std::cerr << "Exception caught: " << exception.what() << "\n";
+
+    // 3. Basic validation
+    if (newQuantity <= 0 || newPrice <= 0) {
         return false;
-    }   
+    }
+
+    // 4. Remove from the book
+    if (!orderBook.removeOrder(orderId)) {
+        return false;
+    }
+
+    // 5. Update the fields
+    existingOrder->setQuantity(newQuantity);
+    auto limitPtr = std::dynamic_pointer_cast<LimitOrder>(existingOrder);
+    if (limitPtr) {
+        limitPtr->setPrice(newPrice);
+    } else {
+        // Should not happen if we confirmed it is limit, but just in case:
+        return false;
+    }
+
+    // 6. Re-submit (which triggers immediate match if crossing)
+    submitOrder(existingOrder);
+
+    return true;
 }
 
 // ------------------------------------------
