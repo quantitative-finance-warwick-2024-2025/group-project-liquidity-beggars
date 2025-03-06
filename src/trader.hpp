@@ -17,7 +17,7 @@ private:
 
 public:
     // Constructor
-    Trader(std::string id, Exchange* exchange);
+    Trader(Exchange* exchange);
     
     // Create limit order
     std::shared_ptr<LimitOrder> createLimitOrder(double price, double quantity, bool isBuy);

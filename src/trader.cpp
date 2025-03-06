@@ -7,9 +7,10 @@ namespace trading {
 // Trader class implementation
 
 // Constructor
-Trader::Trader(std::string id, Exchange* exchange):
-    id(std::move(id)), exchange(exchange) {
-        // TODO
+Trader::Trader(Exchange* exchange):
+    exchange(exchange) {
+        static unsigned int nextTraderId = 1;
+        id = "TRD-" + std::to_string(nextTraderId++);
 }
 
 // Create limit order

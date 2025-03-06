@@ -1,23 +1,41 @@
 #include "exchange.hpp"
 #include <sstream>
-#include <algorithm>  // std::min
-#include <iostream>   // optional logging
+#include <algorithm>
+#include <iostream>  
+#include <iomanip>   
+#include <chrono>     
+#include <ctime>     
 
 namespace trading {
+
+// Helper function to get current timestamp
+std::string getCurrentTimestamp() {
+    auto now = std::chrono::system_clock::now();
+    auto time_t_now = std::chrono::system_clock::to_time_t(now);
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+        now.time_since_epoch()) % 1000;
+    
+    std::stringstream ss;
+    ss << std::put_time(std::localtime(&time_t_now), "%Y-%m-%d %H:%M:%S");
+    ss << '.' << std::setfill('0') << std::setw(3) << ms.count();
+    return ss.str();
+}
 
 // ------------------------------------------
 // Trade struct
 // ------------------------------------------
+// Trade struct implementation in exchange.cpp
 std::string Trade::toString() const {
     std::stringstream ss;
-    ss << "Trade executed: "
-       << "BUYER(" << buyOrderId << ") "
-       << "SELLER(" << sellOrderId << ") "
-       << "QUANTITY(" << quantity << ") "
-       << "PRICE(" << price << ")";
+    ss << std::fixed << std::setprecision(2);
+    ss << "[" << getCurrentTimestamp() << "] TRADE EXECUTED: "
+       << quantity << " units at $" << price
+       << " | Buyer: " << buyTraderId 
+       << " (Order " << buyOrderId << ")"
+       << " | Seller: " << sellTraderId
+       << " (Order " << sellOrderId << ")";
     return ss.str();
 }
-
 // ------------------------------------------
 // Exchange class implementation
 // ------------------------------------------
@@ -28,7 +46,11 @@ std::string Trade::toString() const {
 std::vector<Trade> Exchange::matchOrder(std::shared_ptr<Order> incomingOrder)
 {
     std::vector<Trade> executedTrades;
-
+    
+    // Record initial quantity for reporting purposes
+    double initialQuantity = incomingOrder->getQuantity();
+    std::string incomingTraderId = incomingOrder->getTraderId();
+    
     // If it's a buy order...
     if (incomingOrder->isBuyOrder()) {
         while (incomingOrder->getQuantity() > 0) {
@@ -36,6 +58,9 @@ std::vector<Trade> Exchange::matchOrder(std::shared_ptr<Order> incomingOrder)
             auto bestAsk = orderBook.getLowestAsk();
             if (!bestAsk || bestAsk->getQuantity() <= 0) {
                 // No ask orders left, can't match further
+                std::cout << "[" << getCurrentTimestamp() << "] ORDER STATUS: Buy order " << incomingOrder->getId() 
+                          << " (Trader " << incomingTraderId << ")"
+                          << " - No matching sell orders available in the book" << std::endl;
                 break;
             }
 
@@ -45,6 +70,11 @@ std::vector<Trade> Exchange::matchOrder(std::shared_ptr<Order> incomingOrder)
                 double bestAskPrice  = bestAsk->getPrice();
                 if (incomingPrice < bestAskPrice) {
                     // No crossing if incoming buy price is less than best ask price
+                    std::cout << "[" << getCurrentTimestamp() << "] ORDER STATUS: Buy limit order " << incomingOrder->getId()
+                              << " (Trader " << incomingTraderId << ")"
+                              << " - Price $" << std::fixed << std::setprecision(2) << incomingPrice
+                              << " below best ask of $" << bestAskPrice 
+                              << " - Order added to book" << std::endl;
                     break;
                 }
             }
@@ -56,12 +86,17 @@ std::vector<Trade> Exchange::matchOrder(std::shared_ptr<Order> incomingOrder)
 
             // 4. Create a Trade
             Trade trade;
-            trade.buyOrderId  = incomingOrder->getId();
-            trade.sellOrderId = bestAsk->getId();
+            trade.buyOrderId    = incomingOrder->getId();
+            trade.sellOrderId   = bestAsk->getId();
+            trade.buyTraderId   = incomingOrder->getTraderId();
+            trade.sellTraderId  = bestAsk->getTraderId();
             // Execution price is typically the resting order's price
-            trade.price       = bestAsk->getPrice();
-            trade.quantity    = matchedQty;
+            trade.price         = bestAsk->getPrice();
+            trade.quantity      = matchedQty;
             executedTrades.push_back(trade);
+            
+            // Print trade execution details
+            std::cout << trade.toString() << std::endl;
 
             // 5. Update quantities
             double newIncomingQty = incomingOrder->getQuantity() - matchedQty;
@@ -75,9 +110,24 @@ std::vector<Trade> Exchange::matchOrder(std::shared_ptr<Order> incomingOrder)
                 bool removed = orderBook.removeOrder(bestAsk->getId());
                 if (!removed) {
                     // Failed to remove order - break to avoid infinite loop
+                    std::cout << "[" << getCurrentTimestamp() << "] ERROR: Failed to remove fully matched sell order " 
+                              << bestAsk->getId() << " (Trader " << bestAsk->getTraderId() << ")" << std::endl;
                     break;
                 }
             }
+        }
+        
+        // Report final state of the order
+        if (incomingOrder->getQuantity() <= 0) {
+            std::cout << "[" << getCurrentTimestamp() << "] ORDER COMPLETE: Buy order " << incomingOrder->getId()
+                      << " (Trader " << incomingTraderId << ")"
+                      << " fully executed for " << initialQuantity << " units" << std::endl;
+        } else if (incomingOrder->getQuantity() < initialQuantity) {
+            std::cout << "[" << getCurrentTimestamp() << "] ORDER PARTIAL: Buy order " << incomingOrder->getId()
+                      << " (Trader " << incomingTraderId << ")"
+                      << " partially executed. " 
+                      << (initialQuantity - incomingOrder->getQuantity()) << " units filled, "
+                      << incomingOrder->getQuantity() << " units remaining" << std::endl;
         }
     }
     // If it's a sell order...
@@ -87,6 +137,9 @@ std::vector<Trade> Exchange::matchOrder(std::shared_ptr<Order> incomingOrder)
             auto bestBid = orderBook.getHighestBid();
             if (!bestBid || bestBid->getQuantity() <= 0) {
                 // No bid orders left
+                std::cout << "[" << getCurrentTimestamp() << "] ORDER STATUS: Sell order " << incomingOrder->getId()
+                          << " (Trader " << incomingTraderId << ")"
+                          << " - No matching buy orders available in the book" << std::endl;
                 break;
             }
 
@@ -96,6 +149,11 @@ std::vector<Trade> Exchange::matchOrder(std::shared_ptr<Order> incomingOrder)
                 double bestBidPrice  = bestBid->getPrice();
                 if (bestBidPrice < incomingPrice) {
                     // No crossing if best bid price is less than incoming sell price
+                    std::cout << "[" << getCurrentTimestamp() << "] ORDER STATUS: Sell limit order " << incomingOrder->getId()
+                              << " (Trader " << incomingTraderId << ")"
+                              << " - Price $" << std::fixed << std::setprecision(2) << incomingPrice
+                              << " above best bid of $" << bestBidPrice 
+                              << " - Order added to book" << std::endl;
                     break;
                 }
             }
@@ -105,11 +163,16 @@ std::vector<Trade> Exchange::matchOrder(std::shared_ptr<Order> incomingOrder)
 
             // 4. Create a Trade
             Trade trade;
-            trade.buyOrderId  = bestBid->getId();
-            trade.sellOrderId = incomingOrder->getId();
-            trade.price       = bestBid->getPrice();
-            trade.quantity    = matchedQty;
+            trade.buyOrderId    = bestBid->getId();
+            trade.sellOrderId   = incomingOrder->getId();
+            trade.buyTraderId   = bestBid->getTraderId();
+            trade.sellTraderId  = incomingOrder->getTraderId();
+            trade.price         = bestBid->getPrice();
+            trade.quantity      = matchedQty;
             executedTrades.push_back(trade);
+            
+            // Print trade execution details
+            std::cout << trade.toString() << std::endl;
 
             // 5. Update quantities
             double newIncomingQty = incomingOrder->getQuantity() - matchedQty;
@@ -123,9 +186,24 @@ std::vector<Trade> Exchange::matchOrder(std::shared_ptr<Order> incomingOrder)
                 bool removed = orderBook.removeOrder(bestBid->getId());
                 if (!removed) {
                     // Failed to remove order - break to avoid infinite loop
+                    std::cout << "[" << getCurrentTimestamp() << "] ERROR: Failed to remove fully matched buy order " 
+                              << bestBid->getId() << " (Trader " << bestBid->getTraderId() << ")" << std::endl;
                     break;
                 }
             }
+        }
+        
+        // Report final state of the order
+        if (incomingOrder->getQuantity() <= 0) {
+            std::cout << "[" << getCurrentTimestamp() << "] ORDER COMPLETE: Sell order " << incomingOrder->getId()
+                      << " (Trader " << incomingTraderId << ")"
+                      << " fully executed for " << initialQuantity << " units" << std::endl;
+        } else if (incomingOrder->getQuantity() < initialQuantity) {
+            std::cout << "[" << getCurrentTimestamp() << "] ORDER PARTIAL: Sell order " << incomingOrder->getId()
+                      << " (Trader " << incomingTraderId << ")"
+                      << " partially executed. " 
+                      << (initialQuantity - incomingOrder->getQuantity()) << " units filled, "
+                      << incomingOrder->getQuantity() << " units remaining" << std::endl;
         }
     }
 
@@ -135,8 +213,33 @@ std::vector<Trade> Exchange::matchOrder(std::shared_ptr<Order> incomingOrder)
 // ------------------------------------------
 // registerTrader
 // ------------------------------------------
-Trader& Exchange::registerTrader(const std::string& traderId) {
-    return traders.try_emplace(traderId, traderId, this).first->second;
+std::shared_ptr<Trader> Exchange::registerTrader() {
+
+    auto trader = std::make_shared<Trader>(this);
+    
+    traders[trader->getId()] = trader;
+    
+    // Log registration
+    std::cout << "[" << getCurrentTimestamp() << "] TRADER REGISTERED: " 
+              << trader->getId() << std::endl;
+              
+    return trader;
+}
+
+void Exchange::displayTraders() const {
+    std::cout << "[" << getCurrentTimestamp() << "] REGISTERED TRADERS:" << std::endl;
+    std::cout << "=============================" << std::endl;
+    
+    if (traders.empty()) {
+        std::cout << "No traders registered." << std::endl;
+        return;
+    }
+    
+    for (const auto& [traderId, trader] : traders) {
+        std::cout << "Trader ID: " << traderId << std::endl;
+    }
+    
+    std::cout << "Total traders: " << traders.size() << std::endl;
 }
 
 // ------------------------------------------

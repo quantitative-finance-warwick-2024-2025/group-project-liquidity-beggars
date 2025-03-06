@@ -13,9 +13,11 @@ namespace trading {
 struct Trade {
     std::string buyOrderId;
     std::string sellOrderId;
+    std::string buyTraderId;   
+    std::string sellTraderId;  
     double price;
     double quantity;
-    
+
     std::string toString() const;
 };
 
@@ -24,15 +26,18 @@ class Exchange {
 private:
     OrderBook orderBook;
     std::vector<Trade> trades;
-    std::unordered_map<std::string, Trader> traders;
+    std::unordered_map<std::string, std::shared_ptr<Trader>> traders;
 
     // Match order
     std::vector<Trade> matchOrder(std::shared_ptr<Order> order);
     
 public:
     
-    // Register trader
-    Trader& registerTrader(const std::string& traderId);
+    // Register a new trader
+    std::shared_ptr<Trader> registerTrader();
+
+    // Display all registered traders
+    void displayTraders() const;
     
     // Submit order
     std::vector<Trade> submitOrder(std::shared_ptr<Order> order);
@@ -49,5 +54,8 @@ public:
     // Get trades
     const std::vector<Trade>& getTrades() const;
 };
+
+// Helper function to get current timestamp 
+std::string getCurrentTimestamp();
 
 }
