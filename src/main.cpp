@@ -92,16 +92,16 @@ int main() {
 
         // Create an exchange and register three traders.
         trading::Exchange exchange;
-        trading::Trader& marketMaker    = exchange.registerTrader("MarketMaker");
-        trading::Trader& informedTrader = exchange.registerTrader("InformedTrader");
-        trading::Trader& noiseTrader    = exchange.registerTrader("NoiseTrader");
+        auto marketMaker    = exchange.registerTrader();
+        auto informedTrader = exchange.registerTrader();
+        auto noiseTrader    = exchange.registerTrader();
 
         // Set up the market maker with an initial belief and corresponding quotes.
         double beliefP = 0.5;
         double currentAsk = computeAsk(beliefP, alpha, vHigh, vLow);
         double currentBid = computeBid(beliefP, alpha, vHigh, vLow);
-        auto mmBidOrder = marketMaker.createLimitOrder(currentBid, 1e6, true);
-        auto mmAskOrder = marketMaker.createLimitOrder(currentAsk, 1e6, false);
+        auto mmBidOrder = marketMaker -> createLimitOrder(currentBid, 1e6, true);
+        auto mmAskOrder = marketMaker -> createLimitOrder(currentAsk, 1e6, false);
         exchange.submitOrder(mmBidOrder);
         exchange.submitOrder(mmAskOrder);
         std::string mmBidId = mmBidOrder->getId();
@@ -172,11 +172,11 @@ int main() {
                             double limitPrice = isBuy
                                 ? (trueValue - informedOrderAggression)
                                 : (trueValue + informedOrderAggression);
-                            auto lo = informedTrader.createLimitOrder(limitPrice, quantity, isBuy);
+                            auto lo = informedTrader -> createLimitOrder(limitPrice, quantity, isBuy);
                             tradesExecuted = exchange.submitOrder(lo);
                         } else {
                             orderTypeStr = "MARKET";
-                            auto mo = informedTrader.createMarketOrder(quantity, isBuy);
+                            auto mo = informedTrader -> createMarketOrder(quantity, isBuy);
                             tradesExecuted = exchange.submitOrder(mo);
                         }
                     }
@@ -199,11 +199,11 @@ int main() {
                         if (limitPrice < 0.01) {
                             limitPrice = 0.01;
                         }
-                        auto lo = noiseTrader.createLimitOrder(limitPrice, quantity, isBuy);
+                        auto lo = noiseTrader -> createLimitOrder(limitPrice, quantity, isBuy);
                         tradesExecuted = exchange.submitOrder(lo);
                     } else {
                         orderTypeStr = "MARKET";
-                        auto mo = noiseTrader.createMarketOrder(quantity, isBuy);
+                        auto mo = noiseTrader -> createMarketOrder(quantity, isBuy);
                         tradesExecuted = exchange.submitOrder(mo);
                     }
                 }
@@ -230,8 +230,8 @@ int main() {
                     double newBid = computeBid(beliefP, alpha, vHigh, vLow);
                     exchange.cancelOrder(mmBidId);
                     exchange.cancelOrder(mmAskId);
-                    auto newBidOrder = marketMaker.createLimitOrder(newBid, 1e6, true);
-                    auto newAskOrder = marketMaker.createLimitOrder(newAsk, 1e6, false);
+                    auto newBidOrder = marketMaker -> createLimitOrder(newBid, 1e6, true);
+                    auto newAskOrder = marketMaker -> createLimitOrder(newAsk, 1e6, false);
                     exchange.submitOrder(newBidOrder);
                     exchange.submitOrder(newAskOrder);
                     mmBidId = newBidOrder->getId();
