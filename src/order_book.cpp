@@ -189,17 +189,31 @@ std::shared_ptr<Order> OrderBook::getHighestBid() const {
     try{
         // get first price level (highest - greater operator)
         const auto& level = bids.begin() -> second;
-        if (bids.empty() || level.orders.empty()) {
+        if (bids.empty()) {
             throw std::runtime_error("No bids.");
         }
         // get first order (time priority)
-        return level.orders.front();
+        return level.orders.empty() ? nullptr : level.orders.front();
     }
     catch (std::runtime_error& exception){
         std::cerr << "Exception caught: " << exception.what() << "\n";
         return nullptr;
     }
 }
+
+// std::shared_ptr<Order> OrderBook::getHighestBid() const {
+    
+//     if (bids.empty()) {
+//         return nullptr; // TODO EXCEPTION
+//     }
+
+//     // get first price level (highest - greater operator)
+//     const auto& level = bids.begin() -> second;
+
+//     // get first order (time priority)
+//     return level.orders.empty() ? nullptr : level.orders.front(); // TODO EXCEPTION
+// }
+
 
 // Get lowest ask
 std::shared_ptr<Order> OrderBook::getLowestAsk() const {
@@ -207,18 +221,31 @@ std::shared_ptr<Order> OrderBook::getLowestAsk() const {
         // get first price level (lowest)
         const auto& level = asks.begin() -> second;
 
-        if (asks.empty() || level.orders.empty()) {
+        if (asks.empty()) {
             throw std::runtime_error("No asks.");
         }
         
         // get first order (time priority - default operator)
-        return level.orders.front();
+        return level.orders.empty() ? nullptr : level.orders.front();;
     }
     catch (std::runtime_error& exception){
         std::cerr << "Exception caught: " << exception.what() << "\n";
         return nullptr;
     }
 }
+
+// std::shared_ptr<Order> OrderBook::getLowestAsk() const {
+    
+//     if (asks.empty()) {
+//         return nullptr; // TODO EXCEPTION
+//     }
+
+//     // get first price level (lowest)
+//     const auto& level = asks.begin() -> second;
+
+//     // get first order (time priority - default operator)
+//     return level.orders.empty() ? nullptr : level.orders.front(); // TODO EXCEPTION
+// }
 
 
 // Check if book is empty

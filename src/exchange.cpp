@@ -164,6 +164,7 @@ std::vector<Trade> Exchange::submitOrder(std::shared_ptr<Order> order)
     }
     catch(const std::invalid_argument& exception){
         std::cerr << "Exception caught: " << exception.what() << "\n";
+        return {};
     }
     
 }
@@ -227,9 +228,11 @@ bool Exchange::modifyOrder(const std::string& orderId, double newPrice, double n
     }
     catch (std::invalid_argument& exception){
         std::cerr << "Exception caught: " << exception.what() << "\n";
+        return false;
     }
     catch (std::runtime_error& exception){
         std::cerr << "Exception caught: " << exception.what() << "\n";
+        return false;
     }   
 }
 
