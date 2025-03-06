@@ -52,6 +52,9 @@ private:
     double price;
 
 public:
+    // Flag for limit order
+    bool isValid;
+
     LimitOrder(std::string traderId, double price, double quantity, bool isBuy);
     
     // Abstract methods

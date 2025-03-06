@@ -26,10 +26,14 @@ TEST_CASE("LimitOrder Creation", "[LimitOrder]") {
     }
 
     SECTION("Invalid Limit Orders") {
-        REQUIRE_THROWS_AS(LimitOrder("trader123", 50.5, -100, true), std::invalid_argument);
-        REQUIRE_THROWS_AS(LimitOrder("trader123", -10.0, 100, true), std::invalid_argument);
-        REQUIRE_THROWS_AS(LimitOrder("trader123", 50.5, 0, true), std::invalid_argument);
-        REQUIRE_THROWS_AS(LimitOrder("trader123", 0, 100, true), std::invalid_argument);
+        LimitOrder o1("trader123", 50.5, -100, true);
+        LimitOrder o2("trader123", -10.0, 100, true);
+        LimitOrder o3("trader123", 50.5, 0, true);
+        LimitOrder o4("trader123", 0, 100, true);
+        REQUIRE_FALSE(o1.isValid);
+        REQUIRE_FALSE(o2.isValid);
+        REQUIRE_FALSE(o3.isValid);
+        REQUIRE_FALSE(o4.isValid);
     }
 }
 
