@@ -30,7 +30,7 @@
 - ✅ Implement logic of `Trader` class
 - ✅ Write unit tests for `Trader` class
 - [ ] Add exception handling
-- [ ] Look into Python & C++ merge -> create analysis framework in Python -- first
+- ✅ Look into Python & C++ merge -> create analysis framework in Python
 
 ## Mohammed Ali Yasin:
 - ✅ Implement logic of `Exchange` class
@@ -42,4 +42,3 @@
 - ✅ Implement logic of `Order` class
 - ✅ Write unit tests for `Order` class
 - ✅ Report
-

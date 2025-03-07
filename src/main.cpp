@@ -12,6 +12,7 @@
 #include <memory>
 #include <algorithm>
 #include <vector>
+#include <cstdlib>
 
 // Sets the ask quote based on the current belief and model parameters.
 double computeAsk(double p, double alpha, double vHigh, double vLow) {
@@ -284,8 +285,17 @@ int main() {
         }
 
         outFile.close();
-        std::cout << "Simulation completed. Results written to masterpiece_simulation.csv\n";
-        return 0;
+        int returncode = system("python ../src/simulation_analysis.py");
+        if (returncode == 0){
+            std::cout << "Simulation completed. Results written to masterpiece_simulation.csv\n";
+            std::cout << "Figure generated to build/figure.png\n";
+            return 0;
+        }
+        else{
+            std::cerr << "Python execution failed\n";
+            return 1;
+        }
+        
     } catch (const std::exception &e) {
         std::cerr << "Simulation error: " << e.what() << "\n";
         return 1;
