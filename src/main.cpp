@@ -58,27 +58,27 @@ double updateBeliefAfterTrade(bool wasBuy, double p, double alpha) {
 int main() {
     try {
         // Simulation parameters and rates.
-        const double T = 100.0;
+        const double T = 200.0;
         const double dt = 0.01;
         const int numSteps = static_cast<int>(T / dt);
-        const double lambda = 100.0;
-        const double pInformed = 0.3;
+        const double lambda = 80.0;
+        const double pInformed = 0.25;
         const double pBuyNoise = 0.5;
-        const double vHigh = 110.0;
-        const double vLow  = 90.0;
+        const double vHigh = 120.0;
+        const double vLow  = 80.0;
         const double transitionHighToLow = 0.02;
         const double transitionLowToHigh = 0.02;
-        const double alpha = 0.9;
-        const double meanQuantity = 10.0;
-        const double maxQuantity = 100.0;
-        const double probLimitOrder = 0.6;
-        const double transactionFeeRate = 0.002;
+        const double alpha = 0.85;
+        const double meanQuantity = 5.0;
+        const double maxQuantity = 50.0;
+        const double probLimitOrder = 0.7;
+        const double transactionFeeRate = 0.001;
         const bool allowInformedLimitOrders = true;
-        const double informedOrderAggression = 0.2;
+        const double informedOrderAggression = 0.5;
         const double longRunMean = 0.5;
-        const double meanReversionRate = 0.05;
-        const double beliefLowerBound = 0.01;
-        const double beliefUpperBound = 0.99;
+        const double meanReversionRate = 0.1;
+        const double beliefLowerBound = 0.05;
+        const double beliefUpperBound = 0.95;
 
         // Random number generators.
         std::random_device rd;
@@ -101,8 +101,8 @@ int main() {
         double beliefP = 0.5;
         double currentAsk = computeAsk(beliefP, alpha, vHigh, vLow);
         double currentBid = computeBid(beliefP, alpha, vHigh, vLow);
-        auto mmBidOrder = marketMaker -> createLimitOrder(currentBid, 1e6, true);
-        auto mmAskOrder = marketMaker -> createLimitOrder(currentAsk, 1e6, false);
+        auto mmBidOrder = marketMaker->createLimitOrder(currentBid, 1e6, true);
+        auto mmAskOrder = marketMaker->createLimitOrder(currentAsk, 1e6, false);
         exchange.submitOrder(mmBidOrder);
         exchange.submitOrder(mmAskOrder);
         std::string mmBidId = mmBidOrder->getId();
@@ -114,15 +114,16 @@ int main() {
             std::cerr << "Error: unable to open output file." << std::endl;
             return 1;
         }
-        outFile << "time,arrival,trader_type,order_type,is_buy,quantity,"
-                << "exec_price_avg,num_trades,best_bid,best_ask,spread,"
-                << "belief_p,true_value,fees\n";
+        // CSV Header: note we now log best_bid, best_ask and spread from the order book
+        outFile << "time,arrival,trader_type,order_type,is_buy,quantity,exec_price_avg,num_trades,"
+                << "best_bid,best_ask,spread,belief_p,true_value,fees\n";
 
         // Main time-stepping loop.
         for (int step = 0; step < numSteps; ++step) {
             double currentTime = step * dt;
 
             // Randomly evolve the fundamental value using a simple Markov process.
+            bool oldIsHighValue = isHighValue; // Track pre-flip state
             if (isHighValue) {
                 if (uniDist(rng) < transitionHighToLow * dt) {
                     isHighValue = false;
@@ -133,6 +134,22 @@ int main() {
                     isHighValue = true;
                     trueValue = vHigh;
                 }
+            }
+
+            // If the fundamental value has flipped, reset the market-maker's quotes.
+            if (oldIsHighValue != isHighValue) {
+                exchange.cancelOrder(mmBidId);
+                exchange.cancelOrder(mmAskId);
+                double newAsk = computeAsk(beliefP, alpha, vHigh, vLow);
+                double newBid = computeBid(beliefP, alpha, vHigh, vLow);
+                auto newBidOrder = marketMaker->createLimitOrder(newBid, 1e6, true);
+                auto newAskOrder = marketMaker->createLimitOrder(newAsk, 1e6, false);
+                exchange.submitOrder(newBidOrder);
+                exchange.submitOrder(newAskOrder);
+                mmBidId = newBidOrder->getId();
+                mmAskId = newAskOrder->getId();
+                currentAsk = newAsk;
+                currentBid = newBid;
             }
 
             // Determine if an order arrives based on a Poisson process approximation.
@@ -156,15 +173,14 @@ int main() {
                 if (isInformed) {
                     // Informed trader decides direction based on the true fundamental.
                     isBuy = (trueValue == vHigh);
-                    quantity = 1.0;
+                    double q = expQty(rng);
+                    quantity = std::min(std::max(q, 1.0), maxQuantity);
                     double marketPrice = isBuy ? currentAsk : currentBid;
                     double notional = marketPrice * quantity;
                     double feeEstimate = notional * transactionFeeRate;
                     double netBenefit = isBuy
                             ? (trueValue - (marketPrice + feeEstimate))
                             : ((marketPrice - feeEstimate) - trueValue);
-
-                    // The informed trader only submits if the trade seems profitable.
                     if (netBenefit <= 0) {
                         orderTypeStr = "SKIPPED";
                     } else {
@@ -173,11 +189,11 @@ int main() {
                             double limitPrice = isBuy
                                 ? (trueValue - informedOrderAggression)
                                 : (trueValue + informedOrderAggression);
-                            auto lo = informedTrader -> createLimitOrder(limitPrice, quantity, isBuy);
+                            auto lo = informedTrader->createLimitOrder(limitPrice, quantity, isBuy);
                             tradesExecuted = exchange.submitOrder(lo);
                         } else {
                             orderTypeStr = "MARKET";
-                            auto mo = informedTrader -> createMarketOrder(quantity, isBuy);
+                            auto mo = informedTrader->createMarketOrder(quantity, isBuy);
                             tradesExecuted = exchange.submitOrder(mo);
                         }
                     }
@@ -187,24 +203,13 @@ int main() {
                     bool placeLimit = (uniDist(rng) < probLimitOrder);
                     double q = expQty(rng);
                     quantity = std::min(std::max(q, 1.0), maxQuantity);
-
                     if (placeLimit) {
                         orderTypeStr = "LIMIT";
-                        auto bestBidOrder = exchange.getOrderBook().getHighestBid();
-                        auto bestAskOrder = exchange.getOrderBook().getLowestAsk();
-                        double bestBidPx = bestBidOrder ? bestBidOrder->getPrice() : currentBid;
-                        double bestAskPx = bestAskOrder ? bestAskOrder->getPrice() : currentAsk;
-                        double mid = 0.5 * (bestBidPx + bestAskPx);
-                        double randomOffset = noisePriceDist(rng);
-                        double limitPrice = mid + randomOffset;
-                        if (limitPrice < 0.01) {
-                            limitPrice = 0.01;
-                        }
-                        auto lo = noiseTrader -> createLimitOrder(limitPrice, quantity, isBuy);
+                        auto lo = noiseTrader->createLimitOrder(isBuy ? currentBid : currentAsk, quantity, isBuy);
                         tradesExecuted = exchange.submitOrder(lo);
                     } else {
                         orderTypeStr = "MARKET";
-                        auto mo = noiseTrader -> createMarketOrder(quantity, isBuy);
+                        auto mo = noiseTrader->createMarketOrder(quantity, isBuy);
                         tradesExecuted = exchange.submitOrder(mo);
                     }
                 }
@@ -222,17 +227,13 @@ int main() {
                     if (totalQty > 0.0) {
                         execPriceAvg = sumPrices / totalQty;
                     }
-
-                    // Belief update depends on the aggregate direction of the incoming trade.
                     beliefP = updateBeliefAfterTrade(isBuy, beliefP, alpha);
-
-                    // Recalculate the market maker's quotes and replace old orders.
                     double newAsk = computeAsk(beliefP, alpha, vHigh, vLow);
                     double newBid = computeBid(beliefP, alpha, vHigh, vLow);
                     exchange.cancelOrder(mmBidId);
                     exchange.cancelOrder(mmAskId);
-                    auto newBidOrder = marketMaker -> createLimitOrder(newBid, 1e6, true);
-                    auto newAskOrder = marketMaker -> createLimitOrder(newAsk, 1e6, false);
+                    auto newBidOrder = marketMaker->createLimitOrder(newBid, 1e6, true);
+                    auto newAskOrder = marketMaker->createLimitOrder(newAsk, 1e6, false);
                     exchange.submitOrder(newBidOrder);
                     exchange.submitOrder(newAskOrder);
                     mmBidId = newBidOrder->getId();
@@ -250,7 +251,7 @@ int main() {
                 beliefP = beliefUpperBound;
             }
 
-            // Retrieve current best quotes for logging.
+            // Query the actual best quotes from the order book.
             double bestBid = 0.0;
             double bestAsk = 0.0;
             auto bestBidOrder = exchange.getOrderBook().getHighestBid();
@@ -295,7 +296,6 @@ int main() {
             std::cerr << "Python execution failed\n";
             return 1;
         }
-        
     } catch (const std::exception &e) {
         std::cerr << "Simulation error: " << e.what() << "\n";
         return 1;
