@@ -59,4 +59,4 @@ axs[3].set_ylabel('Probability - belief')
 axs[0].legend()
 
 plt.tight_layout()
-plt.savefig('figure.png')
+plt.savefig('../figure.png')
