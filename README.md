@@ -1,45 +1,83 @@
-[![Open in Codespaces](https://classroom.github.com/assets/launch-codespace-2972f46106e565e64193e422d61a12cf1da4916b45550586e14ef0a7c637dd04.svg)](https://classroom.github.com/open-in-codespaces?assignment_repo_id=18399851)
-# IB9JHO Group Project
-This is a blank template for your group to implement your project in the IB9JHO environment.
+This README file outlines supplementary implementation notes and instructions
+for building, running, and extending our project.
 
-# Using CMake to build your main program:
-When you add source files to the project which you want compiled and linked to your program, you need to add them to the CMakeLists.txt file at the root of the project. If you are getting LNK errors it is usually because you forgot to add one of your .cpp files
+## 1. Building and Running
 
-For example:
-```
-set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/my_class1.cpp ${CMAKE_SOURCE_DIR}/src/my_class2.cpp)
-add_executable(my_program ${SRC_FILES} ${CMAKE_SOURCE_DIR}/src/main.cpp)
+1. **Requirements**:
+   - C++20 compiler (we tested on Clang and G++).
+   - CMake (version 3.10 or higher).
+   - Python 3 with libraries `pandas`, `numpy`, and `matplotlib` for data analysis
+     and plotting (used for `simulation_analysis.py`).
 
-```
+2. **Compilation**:
+   - Create a build directory (e.g., `mkdir build && cd build`).
+   - Run `cmake .. && make` in the build directory. 
+   - This should generate an executable (for instance, `./my_program`).
 
-Will create an executable called my_program by compiling my_class1.cpp, my_class2.cpp and main.cpp. Any cpp files you want to add to the project can be set in the first line.
-To keep things simple, make sure you put all source and header files in the /src directory.
+3. **Running the Simulation**:
+   - From the build directory, execute `./my_program`.
+   - The program outputs a CSV file named `masterpiece_simulation.csv` in the
+     `build` folder (or wherever the executable is run).
+   - The Python script `simulation_analysis.py` is then automatically called to 
+     parse the CSV file and produce the figure (`figure.png`).
 
-Note: Some functions from the standard math library may require that you link your executable explictly. This is usually only a problem on linux and is fixed by adding 
-```
-target_link_libraries(my_program m)
-```
-after add_executable
+4. **Tests**:
+   - We included unit tests in the `tests` directory.
+   - The command `make test` (or `ctest`) can be used after a successful build 
+     to run all the Catch2-based tests.
 
-# Using CMake to add tests:
+## 2. Implementation Details
 
-There is a seperate CMakeLists.txt file in the /tests directory for adding tests. For each test you would like to add to the testing suite you 
-will add a cpp file which includes catch2 (see tests/my_test.cpp for an example).
+- **Core Classes**:
+  - `Order` (parent), `LimitOrder`, `MarketOrder`
+  - `OrderBook`
+  - `Exchange`
+  - `Trader`
 
-Then in the CMakeLists.txt file:
-```
-add_executable(my_test ${SRC_FILES} my_test.cpp)
-target_include_directories(my_test PUBLIC ${CMAKE_SOURCE_DIR}/extern/catch2 ${CMAKE_SOURCE_DIR}/src)
-add_test(NAME my_test COMMAND my_test)
-```
+- **Advanced Glosten--Milgrom Variation**:
+  - We track a probabilistic belief about a latent “true value” that flips between
+    `vHigh` and `vLow`.
+  - The parameter `alpha` controls how strongly the market maker reacts to each
+    observed trade.
+  - We incorporate Poisson arrivals for new orders and a Markov chain for the
+    fundamental flips.
 
-will create a test called my_test which will run the my_test.cpp file. Note that SRC_FILES is inherited from the main CMakeLists.txt file so in the case above your test has all the same source files as the main program.
+- **Parameter Interpretation**:
+  - `T = 200.0`: total simulation horizon (abstract time units).
+  - `dt = 0.01`: step size for time integration.
+  - `lambda = 80.0`: roughly indicates how many order arrivals are expected in a
+    unit of time. (Higher means more arrivals, simulating an active market.)
+  - `pInformed = 0.25`: fraction of orders from traders with potential private
+    information, driving price discovery.
+  - `vHigh = 120.0`, `vLow = 80.0`: possible true fundamental values, used in 
+    computing the quotes and final trade outcomes. These are simplified but 
+    chosen to emphasise visible price changes.
+  - `transitionHighToLow = 0.02`, `transitionLowToHigh = 0.02`: the chance per 
+    unit time that the underlying state flips. This randomises the fundamental 
+    environment for the market maker.
+  - `alpha = 0.85`: the weight the market maker places on informed signals. 
+    A higher alpha implies the maker is more sensitive to the presence of
+    informed traders.
+  - `meanQuantity = 5.0`: average order size in the simulation (exponential
+    distribution). Tied to real-world observation that typical order lots are 
+    not extremely large but can vary significantly.
+  - `transactionFeeRate = 0.001`: minimal transaction cost to reflect real 
+    exchanges.
 
-# Using Git to manage your group:
-It is suggested that each group member creates their own branch to prevent clashes. Each group member can create branches in github by clicking
-'branches' when you are on the <> code tab of the repository. Each branch is independent from the main branch which will eventually contain your final project.
+## 3. Possible Extensions
 
-You can add the changes from your personal branch to the main branch using pull requests. You can create these in github, go to the pull requests tab and click new pull request. Then select the branch you want to merge into the main branch. It is recommended to then have the strongest programmer in the team review these pull requests and check your code can safely be merged without breaking anything.
+- **Varying \(\alpha\)**: Investigate how different intensities of informed trading
+  sensitivity affect bid--ask spreads.
+- **Alternate Order Type Mix**: Adjust the ratio of limit to market orders to see
+  how depth and liquidity change.
+- **Multiple Fundamental States**: Expand from two-state (high/low) to a more 
+  granular Markov chain representing additional price levels.
 
-# Submission
-To submit, push your final project to your group's repository on GitHub on the main branch. Extract the contents of the repository to a zip file and submit it via my.wbs.
+## 4. Contact and Contributions
+
+- Each group member contributed unique code modules (orders, exchange logic,
+  simulation, tests, and documentation). Our commits reflect the history on 
+  our GitHub repository. Please see the project report (PDF) for a high-level
+  explanation of how tasks were allocated and tested.
+
+---------------------------
