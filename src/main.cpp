@@ -58,27 +58,27 @@ double updateBeliefAfterTrade(bool wasBuy, double p, double alpha) {
 int main() {
     try {
         // Simulation parameters and rates.
-        const double T = 200.0;
-        const double dt = 0.01;
-        const int numSteps = static_cast<int>(T / dt);
-        const double lambda = 80.0;
-        const double pInformed = 0.25;
-        const double pBuyNoise = 0.5;
-        const double vHigh = 120.0;
-        const double vLow  = 80.0;
-        const double transitionHighToLow = 0.02;
-        const double transitionLowToHigh = 0.02;
-        const double alpha = 0.85;
-        const double meanQuantity = 5.0;
-        const double maxQuantity = 50.0;
-        const double probLimitOrder = 0.7;
-        const double transactionFeeRate = 0.001;
-        const bool allowInformedLimitOrders = true;
-        const double informedOrderAggression = 0.5;
-        const double longRunMean = 0.5;
-        const double meanReversionRate = 0.1;
-        const double beliefLowerBound = 0.05;
-        const double beliefUpperBound = 0.95;
+        const double T = 200.0;                  // Total simulation time
+        const double dt = 0.01;                  // Time-step size for each iteration
+        const int numSteps = static_cast<int>(T / dt); // Number of discrete simulation steps
+        const double lambda = 80.0;              // Rate parameter for poisson process of order arrivals
+        const double pInformed = 0.25;           // Proportion of traders who are informed
+        const double pBuyNoise = 0.5;            // Probability that a noise trader submits a buy order
+        const double vHigh = 120.0;             // High fundamental value of the asset
+        const double vLow  = 80.0;              // Low fundamental value of the asset
+        const double transitionHighToLow = 0.02; // Probability rate of switching from high to low value
+        const double transitionLowToHigh = 0.02; // Probability rate of switching from low to high value
+        const double alpha = 0.85;               // Weighting factor for market maker's reaction to informed trades
+        const double meanQuantity = 5.0;         // Average (mean) order size
+        const double maxQuantity = 50.0;         // Upper bound on order size
+        const double probLimitOrder = 0.7;       // Probability a trader submits a limit order
+        const double transactionFeeRate = 0.001; // Transaction fee rate charged on the traded notional
+        const bool allowInformedLimitOrders = true;  // Whether informed traders can place limit orders
+        const double informedOrderAggression = 0.5;  // Price offset used by informed traders placing limit orders
+        const double longRunMean = 0.5;          // Long-run equilibrium belief for the market maker
+        const double meanReversionRate = 0.1;    // Speed at which the market maker's belief reverts to the long-run mean
+        const double beliefLowerBound = 0.05;    // Lower bound on market maker's belief
+        const double beliefUpperBound = 0.95;    // Upper bound on market maker's belief
 
         // Random number generators.
         std::random_device rd;
