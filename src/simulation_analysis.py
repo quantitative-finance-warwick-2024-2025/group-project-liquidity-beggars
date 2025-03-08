@@ -10,7 +10,6 @@ df = data[['time', 'best_bid', 'best_ask', 'spread', 'quantity', 'belief_p', 'tr
 df = df.rename(columns={'quantity': 'volume'})
 
 # Compute exponential moving averages (EMA) for best_bid, best_ask and belief.
-# Adjust 'span' as necessary for the desired smoothness.
 df['best_bid_ema'] = df['best_bid'].ewm(span=100, adjust=False).mean()
 df['best_ask_ema'] = df['best_ask'].ewm(span=100, adjust=False).mean()
 df['belief_ema']   = df['belief_p'].ewm(span=100, adjust=False).mean()
