@@ -8,9 +8,7 @@
 
 using namespace trading;
 
-// -----------------------------------------------------------------------------
-// Helper function to create a limit order (for test convenience).
-// -----------------------------------------------------------------------------
+// Helper function to create a limit order
 std::shared_ptr<LimitOrder> createTestLimitOrder(const std::string& traderId,
                                                  double price,
                                                  double quantity,
@@ -19,9 +17,7 @@ std::shared_ptr<LimitOrder> createTestLimitOrder(const std::string& traderId,
     return std::make_shared<LimitOrder>(traderId, price, quantity, isBuy);
 }
 
-// -----------------------------------------------------------------------------
-// Helper function to create a market order.
-// -----------------------------------------------------------------------------
+// Helper function to create a market order
 std::shared_ptr<MarketOrder> createTestMarketOrder(const std::string& traderId,
                                                    double quantity,
                                                    bool isBuy)
@@ -89,7 +85,7 @@ TEST_CASE("Exchange - Submit Orders & Match Logic", "[Exchange]")
         REQUIRE(trades[0].price == Approx(105.0));
         REQUIRE(trades[0].quantity == Approx(10.0));
 
-        // Order book should be empty because both orders fully filled.
+        // Order book should be empty because both orders fully filled
         REQUIRE(exchange.getOrderBook().isEmpty());
         REQUIRE(exchange.getTrades().size() == 1);
     }
@@ -131,8 +127,8 @@ TEST_CASE("Exchange - Submit Orders & Match Logic", "[Exchange]")
         auto marketBuy = trader1 -> createMarketOrder(20.0, true);
         auto executed = exchange.submitOrder(marketBuy);
 
-        // We expect the market order to match from the best ask upwards.
-        // The best ask is 99.0 (sellOrder2), then next is 100.0 (sellOrder1).
+        // We expect the market order to match from the best ask upwards
+        // The best ask is 99.0 (sellOrder2), then next is 100.0 (sellOrder1)
         REQUIRE(executed.size() == 2);
 
         // First trade: buy 10 @ 99
@@ -146,12 +142,12 @@ TEST_CASE("Exchange - Submit Orders & Match Logic", "[Exchange]")
         REQUIRE(executed[1].sellOrderId == sellOrder1->getId());
 
         // The buy order had quantity 20, so 10 filled from the 99.0 order,
-        // and 10 from the 100.0 order. The second sell order still has 5 left (15 - 10).
+        // and 10 from the 100.0 order, the second sell order still has 5 left (15 - 10)
         auto remainingSell = exchange.getOrderBook().findOrder(sellOrder1->getId());
         REQUIRE(remainingSell);
         REQUIRE(remainingSell->getQuantity() == Approx(5.0));
 
-        // The 99.0 ask (sellOrder2) should be fully consumed and removed.
+        // The 99.0 ask (sellOrder2) should be fully consumed and removed
         REQUIRE(exchange.getOrderBook().findOrder(sellOrder2->getId()) == nullptr);
     }
 }
@@ -228,8 +224,7 @@ TEST_CASE("Exchange - Cancel & Modify Orders", "[Exchange]")
         auto marketBuy = trader1 -> createMarketOrder(10.0, true);
         exchange.submitOrder(marketBuy);
 
-        // If it’s still leftover (unusual for a market order, but possible if no opposite side),
-        // we attempt to modify it. The exchange logic should reject.
+        // If it’s still leftover, we attempt to modify it, the exchange logic should reject this
         bool modMarket = exchange.modifyOrder(marketBuy->getId(), 120.0, 5.0);
         REQUIRE_FALSE(modMarket);
     }
@@ -242,11 +237,11 @@ TEST_CASE("Exchange - Trade Records", "[Exchange]")
     auto trader2 = exchange.registerTrader();
 
     SECTION("Trade records appended to exchange's trades vector") {
-        // Bob places a sell order
+        // Trader1 places a sell order
         auto sellOrder = trader1 -> createLimitOrder(50.0, 10.0, false);
         exchange.submitOrder(sellOrder);
         
-        // Trtader2 places a buy order crossing Trader1 sell
+        // Trader2 places a buy order crossing Trader1 sell
         auto buyOrder = trader2 -> createLimitOrder(55.0, 10.0, true);
         auto theseTrades = exchange.submitOrder(buyOrder);
 
@@ -264,15 +259,15 @@ TEST_CASE("Exchange - Trade Records", "[Exchange]")
     }
 
     SECTION("Multiple trades accumulate") {
-        // 1) Sell order 1
+        // Sell order 1
         auto sellOrder1 = trader2 -> createLimitOrder(50.0, 10.0, false);
         exchange.submitOrder(sellOrder1);
 
-        // 2) Sell order 2
+        // Sell order 2
         auto sellOrder2 = trader2 -> createLimitOrder(51.0, 5.0, false);
         exchange.submitOrder(sellOrder2);
 
-        // 3) Buy order crosses both
+        // Buy order crosses both
         auto buyOrder = trader1 -> createLimitOrder(55.0, 20.0, true);
         auto tradeVec = exchange.submitOrder(buyOrder);
 
@@ -286,8 +281,8 @@ TEST_CASE("Exchange - Trade Records", "[Exchange]")
         // The exchange's master list of trades should also contain these two
         REQUIRE(exchange.getTrades().size() == 2);
 
-        // 4) The buy order still has leftover quantity (20 - 15 = 5)
-        //    So it remains in the order book at price 55. The sell orders are fully filled.
+        // The buy order still has leftover quantity (20 - 15 = 5), 
+        // so it remains in the order book at price 55, the sell orders are fully filled
         REQUIRE_FALSE(exchange.getOrderBook().isEmpty());
         auto leftoverBuy = exchange.getOrderBook().getHighestBid();
         REQUIRE(leftoverBuy->getQuantity() == Approx(5.0));

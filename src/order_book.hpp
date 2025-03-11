@@ -10,7 +10,6 @@ namespace trading {
 
 // PriceLevel struct
 struct PriceLevel {
-    // Explicit constructor
     explicit PriceLevel(double p);
 
     double price;
@@ -49,7 +48,7 @@ public:
     // Check if book is empty
     bool isEmpty() const;
     
-    // For display
+    // Display Order Book
     std::string toString() const;
 };
 

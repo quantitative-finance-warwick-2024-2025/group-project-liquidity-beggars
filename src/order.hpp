@@ -5,7 +5,7 @@
 
 namespace trading {
 
-// Enumator class for Order types
+// Enum class for Order types
 enum class OrderType {
     LIMIT,
     MARKET
@@ -33,7 +33,7 @@ public:
     // Get order price
     virtual double getPrice() const = 0;
 
-    // For display
+    // Display Order
     virtual std::string toString() const = 0;
     
     // Getters
@@ -65,7 +65,7 @@ public:
     // Get order price
     double getPrice() const override;
 
-    // For display
+    // Display Limit Order
     std::string toString() const override;
     
     // Modify price
@@ -85,7 +85,7 @@ public:
     // Get order price
     double getPrice() const override; 
 
-    // For display
+    // Display Market Order
     std::string toString() const override;
 };
 

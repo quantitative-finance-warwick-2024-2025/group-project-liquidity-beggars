@@ -5,8 +5,8 @@
 - ✅ 26/02 - 1st meeting - idea discussion and task division
 - ✅ 28/02 - 2nd meeting - all classes done, code merge
 - ✅ 01/03 - 3rd meeting - main run and first code version working
-- [ ] 04/03 - 3rd meeting - analysis done + polishing code + refactor
-- [ ] 08/03 - 4th meeting - report done
+- ✅ 04/03 - 3rd meeting - analysis done + polishing code + refactoring
+- ✅ 11/03 - 4th meeting - report done
 
 ## :pushpin: Backlog:
 - ✅ Create project structure (classes, mathods, main)
@@ -25,6 +25,7 @@
 - ✅ Write unit tests for `OrderBook` class
 - ✅ reformat messeges + add timestamp + add trader ID to non-random int
 - [ ] class diagram
+- [ ] final checks
 
 ## Naksh Patel:
 - ✅ Implement logic of `Trader` class

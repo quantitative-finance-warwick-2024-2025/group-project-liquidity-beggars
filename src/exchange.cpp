@@ -8,7 +8,7 @@
 
 namespace trading {
 
-// Gets current local time with millisecond detail
+// Get current local time with millisecond detail
 std::string getCurrentTimestamp() {
     auto now = std::chrono::system_clock::now();
     auto time_t_now = std::chrono::system_clock::to_time_t(now);
@@ -20,7 +20,7 @@ std::string getCurrentTimestamp() {
     return ss.str();
 }
 
-// Formats trade details as a log string
+// Format trade details as a log string
 std::string Trade::toString() const {
     std::stringstream ss;
     ss << std::fixed << std::setprecision(2);
@@ -33,7 +33,7 @@ std::string Trade::toString() const {
     return ss.str();
 }
 
-// Matches an incoming order against the order book
+// Match an incoming order against the order book
 std::vector<Trade> Exchange::matchOrder(std::shared_ptr<Order> incomingOrder)
 {
     std::vector<Trade> executedTrades;
@@ -180,7 +180,7 @@ std::vector<Trade> Exchange::matchOrder(std::shared_ptr<Order> incomingOrder)
     return executedTrades;
 }
 
-// Registers a new Trader and logs the event
+// Register a new Trader and log the event
 std::shared_ptr<Trader> Exchange::registerTrader() {
     auto trader = std::make_shared<Trader>(this);
     traders[trader->getId()] = trader;
@@ -189,7 +189,7 @@ std::shared_ptr<Trader> Exchange::registerTrader() {
     return trader;
 }
 
-// Prints all registered traders
+// Print all registered traders
 void Exchange::displayTraders() const {
     std::cout << "[" << getCurrentTimestamp() << "] REGISTERED TRADERS:\n"
               << "=============================\n";
@@ -203,7 +203,7 @@ void Exchange::displayTraders() const {
     std::cout << "Total traders: " << traders.size() << std::endl;
 }
 
-// Submits an order: tries to match, then adds leftover limit order to the book
+// Submit an order: try to match, then add leftover limit order to the book
 std::vector<Trade> Exchange::submitOrder(std::shared_ptr<Order> order) {
     std::vector<Trade> newTrades = matchOrder(order);
     if (order->getType() == OrderType::LIMIT && order->getQuantity() > 0) {
@@ -213,12 +213,12 @@ std::vector<Trade> Exchange::submitOrder(std::shared_ptr<Order> order) {
     return newTrades;
 }
 
-// Cancels an existing order by ID
+// Cancel an existing order by ID
 bool Exchange::cancelOrder(const std::string& orderId) {
     return orderBook.removeOrder(orderId);
 }
 
-// Modifies limit order price/quantity, then resubmits it
+// Modify limit order price/quantity, then resubmit it
 bool Exchange::modifyOrder(const std::string& orderId, double newPrice, double newQuantity) {
     auto existingOrder = orderBook.findOrder(orderId);
     if (!existingOrder) return false;
@@ -235,14 +235,14 @@ bool Exchange::modifyOrder(const std::string& orderId, double newPrice, double n
     return true;
 }
 
-// Returns a const reference to the OrderBook
+// Return a const reference to the OrderBook
 const OrderBook& Exchange::getOrderBook() const {
     return orderBook;
 }
 
-// Returns the vector of all executed trades
+// Return the vector of all executed trades
 const std::vector<Trade>& Exchange::getTrades() const {
     return trades;
 }
 
-} // namespace trading
+}

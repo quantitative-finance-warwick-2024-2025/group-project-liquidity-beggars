@@ -58,7 +58,7 @@ double LimitOrder::getPrice() const {
     return price;
 }
 
-// For display
+// Display Limit Order
 std::string LimitOrder::toString() const {
     std::stringstream ss;
     ss << "Order " << id << " (" << (isBuy ? "BUY" : "SELL") << "): "
@@ -97,7 +97,7 @@ double MarketOrder::getPrice() const {
     return 0.0;
 }
 
-// For display
+// Display Market Order
 std::string MarketOrder::toString() const{
     std::stringstream ss;
     ss << "Order " << id << " (" << (isBuy ? "BUY" : "SELL") << "): "

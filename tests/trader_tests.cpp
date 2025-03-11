@@ -6,16 +6,17 @@
 
 using namespace trading;
 
-// Trader class testing
-
+// Helper function to create a limit order
 std::shared_ptr<LimitOrder> createLimitOrderTest(const std::string& traderId, double price, double quantity, bool isBuy) {
     return std::make_shared<LimitOrder>(traderId, price, quantity, isBuy);
 }
 
+// Helper function to create a market order
 std::shared_ptr<MarketOrder> createMarketOrderTest(const std::string& traderId, double quantity, bool isBuy) {
     return std::make_shared<MarketOrder>(traderId, quantity, isBuy);
 }
 
+// Helper function to compare the orders
 bool compare_orders(std::shared_ptr<Order> order1, std::shared_ptr<Order> order2) {
     if (order1->getTraderId() == order2->getTraderId() &&
         order1->getPrice() == order2->getPrice() &&
@@ -88,35 +89,5 @@ TEST_CASE("Trader", "[trader]") {
 
         REQUIRE (compare_orders(order1, test_order1) == true);
     }
-
-    // SECTION("Cancel Order"){
-    //     Exchange* exchange;
-    //     std::string traderid = "trader1";
-    //     Trader trader1(traderid, exchange);
-    //     std::shared_ptr<LimitOrder> order1 = trader1.createLimitOrder(101.0, 50, false);
-
-    //     trader1.cancelOrder(order1->getId());
-    
-    //     const OrderBook& orderBook = exchange->getOrderBook();
-    //     std::shared_ptr<Order> foundOrder = orderBook.findOrder(order1->getId());
-
-    //     REQUIRE (foundOrder==nullptr);
-    // }
-
-    // SECTION("Modify Order"){
-    //     Exchange* exchange;
-    //     std::string traderid = "trader1";
-    //     Trader trader1(traderid, exchange);
-    //     std::shared_ptr<LimitOrder> order1 = trader1.createLimitOrder(101.0, 50, false);
-
-    //     trader1.modifyOrder(order1->getId(), 55, 105.0);
-        
-    //     const OrderBook& orderBook = exchange->getOrderBook();
-    //     std::shared_ptr<Order> foundOrder = orderBook.findOrder(order1->getId());
-
-    //     REQUIRE (foundOrder->getPrice() == 105.0);
-    //     REQUIRE (foundOrder->getQuantity() == 55);
-    // }
-
 }
     

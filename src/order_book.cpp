@@ -70,7 +70,7 @@ void OrderBook::addOrder(std::shared_ptr<Order> order) {
             throw std::invalid_argument("Order " + order->getId() + "not a Limit order.");
         }
 
-        // get price
+        // Get price
         double price = order -> getPrice();
         bool isBuy = order -> isBuyOrder();
 
@@ -90,7 +90,7 @@ void OrderBook::addOrder(std::shared_ptr<Order> order) {
             asks.at(price).addOrder(order);
         }
 
-        // store order in hash map for look up by ID
+        // Store order in hash map for look up by ID
         orderMap[order->getId()] = std::make_pair(isBuy, price);
     }
     catch (std::invalid_argument& exception){
@@ -106,7 +106,7 @@ bool OrderBook::removeOrder(const std::string& orderId) {
             throw std::runtime_error("Order " + orderId + " not found.");
         }
 
-        // get order price level and tree side from hash map
+        // Get order price level and tree side from hash map
         double price = it->second.second;
         bool isBuy = it->second.first;
         if (isBuy) {
@@ -157,7 +157,7 @@ std::shared_ptr<Order> OrderBook::findOrder(const std::string& orderId) const {
         if (it == orderMap.end()) {
             throw std::runtime_error("Order " + orderId + " not found.");
         }
-         // get order price level and tree side from hash map
+         // Get order price level and tree side from hash map
         double price = it->second.second;
         bool isBuy = it->second.first;
         
@@ -184,15 +184,15 @@ std::shared_ptr<Order> OrderBook::findOrder(const std::string& orderId) const {
     }
 }
 
-// Get highest bid function
+// Get the highest bid
 std::shared_ptr<Order> OrderBook::getHighestBid() const {
     try{
-        // get first price level (highest - greater operator)
+        // Get first price level 
         const auto& level = bids.begin() -> second;
         if (bids.empty()) {
             throw std::runtime_error("No bids.");
         }
-        // get first order (time priority)
+        // Get first order (time priority)
         return level.orders.empty() ? nullptr : level.orders.front();
     }
     catch (std::runtime_error& exception){
@@ -201,31 +201,17 @@ std::shared_ptr<Order> OrderBook::getHighestBid() const {
     }
 }
 
-// std::shared_ptr<Order> OrderBook::getHighestBid() const {
-    
-//     if (bids.empty()) {
-//         return nullptr; // TODO EXCEPTION
-//     }
-
-//     // get first price level (highest - greater operator)
-//     const auto& level = bids.begin() -> second;
-
-//     // get first order (time priority)
-//     return level.orders.empty() ? nullptr : level.orders.front(); // TODO EXCEPTION
-// }
-
-
-// Get lowest ask
+// Get the lowest ask
 std::shared_ptr<Order> OrderBook::getLowestAsk() const {
     try{
-        // get first price level (lowest)
+        // Get first price level 
         const auto& level = asks.begin() -> second;
 
         if (asks.empty()) {
             throw std::runtime_error("No asks.");
         }
         
-        // get first order (time priority - default operator)
+        // Get first order (time priority)
         return level.orders.empty() ? nullptr : level.orders.front();;
     }
     catch (std::runtime_error& exception){
@@ -234,32 +220,18 @@ std::shared_ptr<Order> OrderBook::getLowestAsk() const {
     }
 }
 
-// std::shared_ptr<Order> OrderBook::getLowestAsk() const {
-    
-//     if (asks.empty()) {
-//         return nullptr; // TODO EXCEPTION
-//     }
-
-//     // get first price level (lowest)
-//     const auto& level = asks.begin() -> second;
-
-//     // get first order (time priority - default operator)
-//     return level.orders.empty() ? nullptr : level.orders.front(); // TODO EXCEPTION
-// }
-
-
 // Check if book is empty
 bool OrderBook::isEmpty() const {
     return bids.empty() && asks.empty();
 }
 
-// For display
+// Display Order Book
 std::string OrderBook::toString() const {
     std::stringstream ss;
     ss << "ORDER BOOK\n";
     ss << "==========\n";
     
-    // Print asks (reverse order)
+    // Print asks
     ss << "ASKS:\n";
     for (auto it = asks.rbegin(); it != asks.rend(); ++it) {
         ss << std::fixed << std::setprecision(2) << it->first << ": ";
