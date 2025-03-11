@@ -24,20 +24,20 @@
 - ✅ Implement logic of `OrderBook` class
 - ✅ Write unit tests for `OrderBook` class
 - ✅ reformat messeges + add timestamp + add trader ID to non-random int
-- [ ] class diagram
-- [ ] final checks
+- ✅ class diagram
+- ✅ final code & report checks
 
 ## Naksh Patel:
 - ✅ Implement logic of `Trader` class
 - ✅ Write unit tests for `Trader` class
-- [ ] Add exception handling
+- ✅ Add exception handling
 - ✅ Look into Python & C++ merge -> create analysis framework in Python
 
 ## Mohammed Ali Yasin:
 - ✅ Implement logic of `Exchange` class
 - ✅ Write unit tests for `Exchange` class
 - ✅ Change main to perform simulation: informed vs. non-informed trading (input for Python)
-- [ ] Report analysis/results
+- ✅ Report analysis/results
 
 ## Panyu Chen:
 - ✅ Implement logic of `Order` class
